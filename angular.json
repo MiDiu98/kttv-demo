@@ -27,9 +27,13 @@
               "src/assets"
             ],
             "styles": [
+              "src/assets/fontawesome-free-6.1.2-web/css/all.min.css",
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/rangeslider.js/dist/rangeslider.min.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -42,7 +46,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumError": "1mb"
                 }
               ],
               "fileReplacements": [

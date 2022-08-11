@@ -1,0 +1,295 @@
+.map-container {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+#map {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  bottom: 0;
+}
+
+.right-pane {
+  position: absolute;
+  right: 0;
+  top: 25%;
+  z-index: 1000;
+  margin-right: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.layer-menu {
+  margin: 0;
+  list-style: none;
+  padding: 10px 0;
+  background-color: rgba(68,65,65,0.84);
+  border-radius: 30px;
+  font-size: 16px;
+}
+
+.layer-link {
+  position: relative;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.layer-link.selected .layer-icon {
+  background-color: #d49500;
+  box-shadow: 0 0 4px 0 black;
+  color: white;
+}
+
+.layer-link.selected .menu-text {
+  text-decoration: underline;
+}
+
+.layer-link:hover .menu-text {
+  background-color: rgba(68,65,65,0.84);
+}
+
+.layer-icon {
+  height: 30px;
+  width: 30px;
+  border-radius: 30px;
+  color: #fff3e1;
+  margin: 5px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-text {
+  position: absolute;
+  top: 0;
+  right: 29px;
+  padding: 5px 10px;
+  color: #fff3e1;
+  text-shadow: 0px 0px 4px black;
+  line-height: 1;
+  border-radius: 1.2em;
+  transition: background-color .3s;
+}
+
+.bottom-pane {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 1000;
+  margin-right: 320px;
+}
+
+.progress-bar {
+  position: absolute;
+  left: 10px;
+  right: 0;
+  height: 30px;
+  bottom: 0;
+  margin-bottom: 0;
+}
+
+.progress-bar .progress-line {
+  height: 6px;
+  cursor: pointer;
+  position: relative;
+  border: 10px solid transparent;
+  background-clip: padding-box;
+  border-right: none;
+  border-left: none;
+  top: -10px;
+  width: 95%;
+  transition: width ease-in-out .7s;
+  left: 45px;
+}
+
+.progress-bar .progress-line-2 {
+  height: 6px;
+  cursor: pointer;
+  position: relative;
+  /* border: 10px solid transparent; */
+  background-clip: padding-box;
+  /* border-right: none;
+  border-left: none; */
+  top: -10px;
+  width: 95%;
+  transition: width ease-in-out .7s;
+  left: 45px;
+}
+
+.progress-bar .progress-line-2 input {
+  width: 100%;
+}
+.progress-bar .progress-line .played {
+  background-color: #e5e5e5;
+  height: 6px;
+  float: left;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+  width: 542px;
+}
+
+.progress-bar .progress-line .avbl {
+  height: 6px;
+  background-color: rgba(68,65,65,0.84);
+  width: 100%;
+  border-radius: 6px;
+}
+
+.progress-bar .progress-line i {
+  display: block;
+  width: 3px;
+  height: 6px;
+  position: absolute;
+  background-color: #946051;
+  top: 0;
+}
+
+.timecode {
+  font-size: 13px;
+  position: absolute;
+  display: block;
+  box-sizing: border-box;
+  top: -2.4em;
+  /* margin-left: -2em; */
+  margin-left: -2.6em;
+}
+
+.timecode.ghost-timecode {
+  font-size: 13px;
+}
+
+.timecode.ghost-timecode .box {
+  box-shadow: none;
+  cursor: pointer;
+  color: white;
+  background-color: rgba(68,65,65,0.84);
+  height: 1.8em;
+  box-sizing: border-box;
+  padding: 0 0.8em;
+  white-space: nowrap;
+  text-align: center;
+  display: table-cell;
+  vertical-align: middle;
+  border-radius: 0.5em;
+}
+
+.timecode .box {
+  cursor: grab;
+  position: relative;
+  background-color: #d49500;
+  color: white;
+  height: 1.8em;
+  box-sizing: border-box;
+  padding: 0 0.8em;
+  white-space: nowrap;
+  text-align: center;
+  display: table-cell;
+  vertical-align: middle;
+  border-radius: 0.5em;
+  box-shadow: 0 0 4px 0 black;
+}
+
+.timecode .box::before {
+  top: 100%;
+  left: 2em;
+  border: solid transparent;
+  content: '';
+  height: 0;
+  width: 0;
+  position: absolute;
+  border-top-color: #d49500;
+  border-width: 0.5em;
+  margin-left: -0.5em;
+}
+.timecode.ghost-timecode .box::before {
+  border-top-color: rgba(68,65,65,0.84);
+}
+
+.play-pause {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 25px;
+  color: #9d0300;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 1.2em;
+  box-shadow: 0 0 4px 0 black;
+  background-color: #e5e5e5;
+  position: absolute;
+  top: -12px;
+  left: 5px;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.play-pause i {
+  font-size: 20px;
+  /* margin-left: 3px;
+  margin-top: 2px; */
+}
+
+#progress-bar #calendar {
+  position: absolute;
+  left: 45px;
+  right: 0;
+  top: 6px;
+  white-space: nowrap;
+  display: flex;
+}
+
+#progress-bar #calendar div {
+  flex-grow: 1;
+  display: inline-block;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 6px 0 0 8px;
+  font-size: 12px;
+  line-height: 1;
+  height: 26px;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  text-shadow: 0px 0px 4px black;
+  color: #fff3e1;
+}
+
+#progress-bar #calendar div:not(:first-child) {
+  border-left: 1px solid rgba(68,65,65,0.84);
+}
+
+.bottom-right-pane {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 1000;
+  width: 300px;
+}
+
+.bottom-right-pane .legend {
+  transition: .3s opacity;
+  margin-bottom: 5px;
+  border-radius: 20px;
+  white-space: nowrap;
+  font-size: 12px;
+  box-shadow: 0 0 4px 0 black;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  background: linear-gradient(to right, rgb(149, 137, 211), rgb(149, 137, 211), rgb(149, 137, 211), rgb(149, 137, 211), rgb(150, 209, 216), rgb(129, 204, 197), rgb(103, 180, 186), rgb(95, 143, 197), rgb(80, 140, 62), rgb(121, 146, 28), rgb(171, 161, 14), rgb(223, 177, 6), rgb(243, 150, 6), rgb(236, 95, 21), rgb(190, 65, 18), rgb(138, 43, 10), rgb(138, 43, 10));
+  color: white;
+}
+
+.bottom-right-pane .legend span {
+  flex-grow: 1;
+  display: inline-block;
+  line-height: 1.5;
+  text-align: center;
+  vertical-align: middle;
+}
