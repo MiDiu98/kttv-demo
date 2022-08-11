@@ -162,7 +162,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       layers: [worldBoundary],
       zoom: 6,
       maxZoom: 22,
-      minZoom: 2
+      minZoom: 6
     });
     this.updateLayers();
     this.updateViewTemperatureLayer();
@@ -282,8 +282,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       onSlide: this.onTimeSlideHandle
     })
 
-    this.http.get('assets/2022081000f000.wind.json').subscribe(data => {
-      console.log(data);
+    this.http.get('assets/2022081100f000.wind.json').subscribe(data => {
       L.velocityLayer({
         displayValues: false,
         displayOptions: {
@@ -575,7 +574,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     }
     this.http.get(GEOSERVER_DOMAIN + '/VTMAP/ows', options).pipe(takeUntil(this.nextTemperatureLayerRequest$)).subscribe((res: any) => {
-      console.log(res);
       this.temperatureGeoJSON = res;
       this.renderTemperatureLayer();
     })
