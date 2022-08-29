@@ -366,3 +366,7 @@ body {
   font-size: 10px;
   margin: 1px;
 }
+
+.leaflet-control-zoom {
+  margin-bottom: 30px !important;
+}

@@ -70,7 +70,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   layers: Layer[] = [
     {
       name: 'Gió',
-      code: 'VTMAP:v'
+      code: 'VTMAP:COVERAGEVIEW_WIND_SPEED'
     },
     {
       name: 'Nhiệt độ',
@@ -118,31 +118,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.timeStep = this.TIMELINE_PER_DAY.indexOf(this.START_HOUR) * this.STEP_PER_TIMELINE;
     this.calculateTimeDisplay();
   }
 
   ngAfterViewInit(): void {
-    // const vtrans = L.tileLayer('https://api.viettelmaps.com.vn:8080/gateway/mapservice/v1/styles/vtmap/{z}/{x}/{y}.png?access_token={accessToken}', {
-    //   attribution: 'Map tiles by <a target="_top" rel="noopener" href="https://map.viettel.vn">Viettelmaps</a>',
-    //   maxZoom: 22,
-    //   minZoom: 2,
-    //   id: 'vt_trans',
-    //   tileSize: 256,
-    //   zoomOffset: 0,
-    //   accessToken: '6ht5fdbc-1996-4f54-87gf-5664f304f3d2'
-    // });
-
-    // const Esri_DarkGreyCanvas = L.tileLayer(
-    //   "http://{s}.sm.mapstack.stamen.com/" +
-    //     "(toner-lite,$fff[difference],$fff[@23],$fff[hsl-saturation@20])/" +
-    //     "{z}/{x}/{y}.png",
-    //   {
-    //     attribution:
-    //       "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, " +
-    //       "NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community"
-    //   }
-    // );
-
     const worldBoundary = L.tileLayer(GEOSERVER_DOMAIN + '/gwc/service/wmts?layer=VTMAP%3AWorld_Countries&style=&tilematrixset=EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A900913%3A{z}&TileCol={x}&TileRow={y}', {
       attribution: 'Map tiles by <a target="_top" rel="noopener" href="https://map.viettel.vn">Viettelmaps</a>',
       id: 'vt_trans',
@@ -152,18 +132,15 @@ export class AppComponent implements OnInit, AfterViewInit {
       zIndex: 3
     });
 
-    // const baseLayers = {
-    //   VTRANS: vtrans,
-    //   GreyCanvas: Esri_DarkGreyCanvas
-    // };
-
     this.map = L.map('map', {
       center: [16.0544, 108.2022],
       layers: [worldBoundary],
       zoom: 6,
       maxZoom: 22,
-      minZoom: 6
+      minZoom: 6,
+      zoomControl: false
     });
+    L.control.zoom({position: 'bottomright'}).addTo(this.map);
     this.updateLayers();
     this.updateViewTemperatureLayer();
     // Marker Hoàng sa, trường sa
@@ -179,87 +156,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       iconSize: [120, 20]
     });    
     L.marker([9.51856, 112.77977], {icon: TruongSaIcon}).addTo(this.map);
-
-    // const layerControls = L.control.layers(baseLayers).addTo(map);
-
-    // const overlays = {
-    //   u: 'VTMAP:u',
-    //   v: 'VTMAP:v',
-    //   t: 'VTMAP:t',
-    //   h: 'VTMAP:h',
-    //   pmsl: 'VTMAP:pmsl',
-    //   q2m: 'VTMAP:q2m',
-    //   rain: 'VTMAP:rain',
-    //   terrain: 'VTMAP:terrain',
-    //   wsnow: 'VTMAP:wsnow',
-    //   cloud: 'VTMAP:cloud',
-    //   landsea_mask: 'VTMAP:landsea_mask',
-    //   t2m: 'VTMAP:t2m',
-    //   ps: 'VTMAP:ps',
-    //   q: 'VTMAP:q',
-    //   ts: 'VTMAP:ts',
-    //   u10m: 'VTMAP:u10m',
-    //   v10m: 'VTMAP:v10m', 
-    // }
-
-    // Object.entries(overlays).forEach(([layerControlName, layerName]) => {
-    //   const layer = L.tileLayer.wms("https://gis.viettelmap.vn:8080/gsv18/VTMAP/wms", {
-    //     layers: layerName,
-    //     format: 'image/png',
-    //     transparent: true,
-    //     version: '1.1.0',
-    //     // maxZoom: 5,
-    //     attribution: "Viettelmaps"
-    //   });
-    //   if (layerControlName === 'v') {
-    //     layer.addTo(map);
-    //   }
-    //   layerControls.addOverlay(layer, layerControlName);
-    // });
-
-      // const layerHot = L.tileLayer.wms("https://smartalert.nchmf.gov.vn/wms", {
-      //   layers: 'vnmha:gfs:temperature',
-      //   format: 'image/png',
-      //   transparent: false,
-      //   version: '1.3.0',
-      //   // TIME: '20220804T0900',
-      //   // producer: 'gfs_surface',
-      //   attribution: "Viettelmaps",
-      //   opacity: 1,
-      //   zIndex: 1
-      // }).addTo(map);
-
-      // const layerCold = L.tileLayer.wms("https://smartalert.nchmf.gov.vn/wms", {
-      //   layers: 'vnmha:gfs:temperature',
-      //   format: 'image/png',
-      //   transparent: false,
-      //   version: '1.3.0',
-      //   // TIME: '20220801T2200',
-      //   // producer: 'gfs_surface',
-      //   attribution: "Viettelmaps",
-      //   opacity: 1,
-      //   zIndex: 2
-      // }).addTo(map)
-
-      // let index = 0;
-      // setInterval(() => {
-      //   if (index % 2 === 0) {
-      //     layerCold.once('load', function (e: any) {
-      //       layerCold.bringToFront();
-      //     })
-      //     layerCold.setParams({
-      //       TIME: times[index],
-      //     })
-      //   } else {
-      //     layerHot.once('load', function (e: any) {
-      //       layerHot.bringToFront();
-      //     })
-      //     layerHot.setParams({
-      //       TIME: times[index],
-      //     })
-      //   }
-      //   index = (index + 1) % times.length;
-      // }, 2000);
 
     $('input[type="range"]').rangeslider({
       polyfill: false,
@@ -320,21 +216,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         opacity: 0.3
       }).addTo(this.map);
     });
-
-    // const html = `
-    //   <div class="picker-lines"></div>
-    //   <div class="picker-content">
-    //     <span>
-    //       <div class="p-title">Nhiệt độ</div>
-    //       <big>16 độ C</big>
-    //     </span>
-    //   </div>
-    // `;
-    // const icon = L.divIcon({
-    //   html, 
-    //   className: 'picker open',
-    //   iconAnchor: [0, 125]
-    // });    
+ 
     this.map.on('click', this.onMapClick);
     this.markerInfoCloseBtn.className = 'picker-close-button';
     this.markerInfoCloseBtn.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
@@ -363,7 +245,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     const newLatLng = latlng || this.infoDetailMarker.getLatLng();
     const layerCode = this.layers[this.layerMenuSelected].code;
     if (!newLatLng || !layerCode) return;
-    this.getLayerFeatureInfo(layerCode === 'VTMAP:v' ? 'VTMAP:COVERAGEVIEW_wind' : layerCode, newLatLng).subscribe((res: any) => {
+    this.getLayerFeatureInfo(layerCode === 'VTMAP:COVERAGEVIEW_WIND_SPEED' ? 'VTMAP:COVERAGEVIEW_wind' : layerCode, newLatLng).subscribe((res: any) => {
       let contentValue: string = 'Không xác định';
       if (res.features && res.features.length > 0) {
         const { properties } = res.features[0]
