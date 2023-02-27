@@ -13,7 +13,7 @@ spec:
   ports:
     - port: 80
       targetPort: 80
-      nodePort: 9004
+      nodePort: 9339
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -33,10 +33,10 @@ spec:
     spec:
       containers:
         - name: demo-windy
-          image: 10.60.156.72/gis/demo-windy:v21
+          image: 10.60.156.72/gis/demo-windy:v22
           ports:
             - containerPort: 80
           imagePullPolicy: Always
       imagePullSecrets:
-      - name: habor
+      - name: harbor
             

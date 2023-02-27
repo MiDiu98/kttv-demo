@@ -7,7 +7,7 @@ declare var L: any;
 declare var $: any;
 
 const CALENDAR_DISPLAY_FORMAT = 'DD/MM/YYYY';
-const GEOSERVER_DOMAIN = 'https://gis.viettelmap.vn:8080/gsv18';
+const GEOSERVER_DOMAIN = 'http://geoserver.atviettelsolutions.com/gsv18';
 const GEOSERVER_WMS = GEOSERVER_DOMAIN + '/VTMAP/wms';
 
 interface Legend {
