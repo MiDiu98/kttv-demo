@@ -32,19 +32,19 @@ export class AppComponent implements OnInit, AfterViewInit {
   calendarList: Calendar[] = [
     {
       display: moment().format(CALENDAR_DISPLAY_FORMAT),
-      query: '2022-08-03',
+      query: '2023-05-23',
     },
     {
       display: moment().add(1, 'days').format(CALENDAR_DISPLAY_FORMAT),
-      query: '2022-08-04'
+      query: '2023-05-24'
     },
     {
       display: moment().add(2, 'days').format(CALENDAR_DISPLAY_FORMAT),
-      query: '2022-08-05'
+      query: '2023-05-25'
     },
     {
       display: moment().add(3, 'days').format(CALENDAR_DISPLAY_FORMAT),
-      query: '2022-08-06'
+      query: '2023-05-26'
     }
   ];
   TIMELINE_PER_DAY: number[] = [
