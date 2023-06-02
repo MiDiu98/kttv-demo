@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: demo-windy
-          image: 10.60.156.72/gis/demo-windy:v23
+          image: 10.60.156.72/gis/demo-windy:v24
           ports:
             - containerPort: 80
           imagePullPolicy: Always
