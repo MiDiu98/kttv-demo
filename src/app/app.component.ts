@@ -123,7 +123,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const worldBoundary = L.tileLayer(GEOSERVER_DOMAIN + '/gwc/service/wmts?layer=VTMAP%3AWorld_Countries&style=&tilematrixset=EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A900913%3A{z}&TileCol={x}&TileRow={y}', {
+    const worldBoundary = L.tileLayer(GEOSERVER_DOMAIN + '/gwc/service/wmts?layer=VTMAP:kttv_base&style=&tilematrixset=EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A900913%3A{z}&TileCol={x}&TileRow={y}', {
       attribution: 'Map tiles by <a target="_top" rel="noopener" href="https://map.viettel.vn">Viettelmaps</a>',
       id: 'vt_trans',
       tileSize: 256,

@@ -33,9 +33,16 @@ spec:
     spec:
       containers:
         - name: demo-windy
-          image: 10.60.156.72/gis/demo-windy:v25
+          image: 10.60.156.72/gis/demo-windy:v30
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "256Mi"
+            limits:
+              cpu: "2"
+              memory: "1Gi"
           imagePullPolicy: Always
       imagePullSecrets:
       - name: harbor
