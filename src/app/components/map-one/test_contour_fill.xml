@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0"
+                       xmlns="http://www.opengis.net/sld"
+                       xmlns:ogc="http://www.opengis.net/ogc"
+                       xmlns:xlink="http://www.w3.org/1999/xlink"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd">
+
+  <NamedLayer>
+    <Name>YourRasterLayer</Name>
+    <UserStyle>
+      <Title>Basic Style</Title>
+      <Abstract>Basic color mapping for raster</Abstract>
+      <FeatureTypeStyle>
+        <Rule>
+          <RasterSymbolizer>
+            <Opacity>1.0</Opacity>
+            <ChannelSelection>
+              <GrayChannel>
+                <SourceChannelName>1</SourceChannelName>
+              </GrayChannel>
+            </ChannelSelection>
+            <ColorMap extended="true" type="intervals">
+              <ColorMapEntry color="#b6b9ff" quantity="-50" opacity="0.0"/>
+              <ColorMapEntry color="#b6b9ff" quantity="1"/>
+              <ColorMapEntry color="#8099e3" quantity="5"/>
+              <ColorMapEntry color="#7fb4d2" quantity="10" />
+              <ColorMapEntry color="#81d1b7" quantity="15"/>
+              <ColorMapEntry color="#c7ff97" quantity="20"/>
+              <ColorMapEntry color="#96ff76" quantity="25"/>
+              <ColorMapEntry color="#64fa63" quantity="30"/>
+              <ColorMapEntry color="#32f131" quantity="35"/>
+              <ColorMapEntry color="#fffeae" quantity="40"/>
+              <ColorMapEntry color="#ffff7e" quantity="45"/>
+              <ColorMapEntry color="#ffff4d" quantity="50"/>
+              <ColorMapEntry color="#fff030" quantity="55"/>
+              <ColorMapEntry color="#fdd393" quantity="60"/>
+              <ColorMapEntry color="#ffb578" quantity="65"/>
+              <ColorMapEntry color="#fc985b" quantity="70"/>
+              <ColorMapEntry color="#ff6332" quantity="75"/>
+              <ColorMapEntry color="#fe4b28" quantity="80"/>
+              <ColorMapEntry color="#fe321d" quantity="85"/>
+              <ColorMapEntry color="#fe180d" quantity="90"/>
+              <ColorMapEntry color="#f40404" quantity="100"/>
+              <ColorMapEntry color="#f40404" quantity="110"/>
+              <ColorMapEntry color="#f40404" quantity="120"/>
+              <ColorMapEntry color="#f40404" quantity="130"/>
+              <ColorMapEntry color="#f40404" quantity="140"/>
+              <ColorMapEntry color="#f40404" quantity="150"/>
+              <ColorMapEntry color="#f40404" quantity="160"/>
+              <ColorMapEntry color="#f40404" quantity="170"/>
+              <ColorMapEntry color="#f40404" quantity="180"/>
+              <ColorMapEntry color="#f40404" quantity="190"/>
+              <ColorMapEntry color="#f40404" quantity="200"/>
+            </ColorMap>
+          </RasterSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>

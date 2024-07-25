@@ -589,7 +589,9 @@ var Windy = function Windy(params) {
 
     if (header.hasOwnProperty("scanMode")) {
       var scanModeMask = header.scanMode.toString(2);
-      scanModeMask = ('0' + scanModeMask).slice(-8);
+      // Dòng này dùng để đảm bảo rằng scanModeMask luôn có độ dài là 8 ký tự.
+      // slice(-8) sẽ cắt lấy 8 ký tự từ phía cuối của chuỗi.
+      scanModeMask = ('0' + scanModeMask).slice(-8); 
       var scanModeMaskArray = scanModeMask.split('').map(Number).map(Boolean);
       if (scanModeMaskArray[0]) Δλ = -Δλ;
       if (scanModeMaskArray[1]) Δφ = -Δφ;

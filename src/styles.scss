@@ -5,6 +5,14 @@ body {
   font-family: -apple-system,system-ui,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
 }
 
+.temp-station {
+  color: white;
+  text-shadow: 1px 1px 1px #000000;
+  .m-0 {
+    margin: 0
+  }
+}
+
 .temperature-popup {
   bottom: -53px !important;
 }
