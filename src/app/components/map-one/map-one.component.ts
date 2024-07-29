@@ -82,26 +82,29 @@ export class MapOneComponent implements OnInit, AfterViewInit {
   baseLayer: any;
   layerHot: any;
   layerCold: any;
+  layerColorFill: any;
+  layerColorContour: any;
+  worldBoundary: any;
   layerMenuSelected: number = 0;
   layers: Layer[] = [
     {
       name: 'Gió',
       // code: 'VTMAP:COVERAGEVIEW_WIND_SPEED',
       // code: 'xwnd',
-      // code: 'hs',
+      // code: '',
       code: 'rain',
     },
     {
       name: 'Nhiệt độ',
       // code: 'VTMAP:t',
       // code: 'ywnd',
-      code: 'rain',
+      code: 't',
     },
     {
       name: 'Mây',
       // code: 'VTMAP:cloud'
       // code: 'theta0',
-      code: 'ts_new1',
+      code: 'ps',
     },
   ];
   layerTime: string = '';
@@ -151,47 +154,40 @@ export class MapOneComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const worldBoundary = L.tileLayer(
-      GEOSERVER_DOMAIN +
-        '/gwc/service/wmts?layer=VTMAP:kttv_base&style=&tilematrixset=EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A900913%3A{z}&TileCol={x}&TileRow={y}',
+    // this.baseLayer = L.tileLayer(
+    //   'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}',
+    //   {
+    //     minZoom: 0,
+    //     maxZoom: 20,
+    //     attribution:
+    //       '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    //     ext: 'png',
+    //   }
+    // );
+    let googleSat = L.tileLayer(
+      'http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
       {
-        attribution:
-          'Map tiles by <a target="_top" rel="noopener" href="https://map.viettel.vn">Viettelmaps</a>',
-        id: 'vt_trans',
-        tileSize: 256,
-        zoomOffset: 0,
-        accessToken: '6ht5fdbc-1996-4f54-87gf-5664f304f3d2',
-        zIndex: 3,
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
       }
     );
-    this.baseLayer = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
-      minZoom: 0,
-      maxZoom: 20,
-      attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      ext: 'png'
-    });
-    // this.baseLayer = L.tileLayer(
-    //   `https://tile.openstreetmap.org/{z}/{x}/{y}.png`
-    // );
 
     const southWest = L.latLng(0.1819767485545991, 94.98199279711885);
     const northEast = L.latLng(25.018021347077003, 125.01800720288115);
     const bounds = L.latLngBounds(southWest, northEast);
     this.map = L.map('windy', {
       center: [16.0544, 108.2022],
-      // center: [40.799311, -74.118464],
-      layers: [worldBoundary],
-      // layers: [this.baseLayer],
-      zoom: 6,
+      layers: [googleSat],
+      zoom: 4,
       maxZoom: 22,
       minZoom: 1,
       zoomControl: false,
-      // fitBounds: bounds,
-      // maxBounds: bounds,
+      fitBounds: bounds,
+      maxBounds: bounds,
     });
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
-    // this.updateLayers();
-    // this.updateViewTemperatureLayer();
+    this.updateLayers();
+    this.updateViewTemperatureLayer();
     // Marker Hoàng sa, trường sa
     const HoangSaIcon = L.divIcon({
       html: `Quần đảo Hoàng Sa (Việt Nam)`,
@@ -205,7 +201,9 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       iconSize: [120, 20],
     });
     L.marker([9.51856, 112.77977], { icon: TruongSaIcon }).addTo(this.map);
-    // this.loadCountryBourderLayer()
+    // setTimeout(() => {
+    //   this.loadCountryBourderLayer()
+    // }, 5000)
 
     // this.initWindyMap();
 
@@ -247,17 +245,52 @@ export class MapOneComponent implements OnInit, AfterViewInit {
   }
 
   loadCountryBourderLayer() {
+    //  this.worldBoundary = L.tileLayer(
+    //   GEOSERVER_DOMAIN +
+    //     '/gwc/service/wmts?layer=VTMAP:kttv_base&style=&tilematrixset=EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A900913%3A{z}&TileCol={x}&TileRow={y}',
+    //   {
+    //     attribution:
+    //       'Map tiles by <a target="_top" rel="noopener" href="https://map.viettel.vn">Viettelmaps</a>',
+    //     id: 'vt_trans',
+    //     tileSize: 256,
+    //     zoomOffset: 0,
+    //     accessToken: '6ht5fdbc-1996-4f54-87gf-5664f304f3d2',
+    //     zIndex: 3,
+    //   }
+    // )
+    // this.worldBoundary.addTo(this.map);
+
+    this.worldBoundary = L.nonTiledLayer
+      .wms(GEOSERVER_WMS, {
+        layers: 'kttv_base',
+        format: 'image/png',
+        transparent: true,
+        opacity: 1,
+        version: '1.1.1',
+      })
+      .addTo(this.map);
+  }
+
+  loadPSContour() {
+    if (!this.map) return;
+    const layerCode = 'ps';
     const layerOptions: any = {
-      layers: 'VTMAP:ne_10m_coastline',
+      layers: layerCode,
+      time: this.layerTime,
       format: 'image/png',
       transparent: true,
-      // opacity: 1,
-      crs: L.CRS.EPSG4326,
+      opacity: 1,
       version: '1.1.1',
+      styles: 'contour_ps',
+      // DIM_LEV: ''
     };
-    L.tileLayer
-    .wms(GEOSERVER_WMS, layerOptions)
-    .addTo(this.map);
+    if (!this.layerColorContour) {
+      this.layerColorContour = L.nonTiledLayer
+        .wms(GEOSERVER_WMS, layerOptions)
+        .addTo(this.map);
+    } else {
+      this.layerColorContour.setParams(layerOptions);
+    }
   }
 
   loadVelocityLayer() {
@@ -321,15 +354,12 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       [25.018021347077003, 125.01800720288115],
     ]);
 
-    console.log('co vo day ko');
     const imageLayer = L.imageOverlay(imageUrl, latLngBounds, {
       opacity: 1,
       errorOverlayUrl: errorOverlayUrl,
       alt: altText,
       interactive: true,
     }).addTo(this.map);
-
-    console.log(imageLayer);
   }
 
   onMapClick(e: any) {
@@ -469,7 +499,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       (this.timeStep % stepPerDay) / this.STEP_PER_TIMELINE
     );
     const dayQuery = this.calendarList[dayIndex].query;
-    const hour = this.TIMELINE_PER_DAY[hourIndex];    
+    const hour = this.TIMELINE_PER_DAY[hourIndex];
 
     const layerTime = `${dayQuery}T${hour < 10 ? '0' + hour : hour}:00:00Z`;
     if (layerTime !== this.layerTime) {
@@ -482,6 +512,85 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     this.timeDisplay = `${dayDisplay} - ${hour}:00`;
   }
 
+  // updateLayers() {
+  //   if (!this.map) return;
+  //   const layerCode = this.layers[this.layerMenuSelected].code;
+  //   const layerOptions: any = {
+  //     layers: layerCode,
+  //     time: this.layerTime,
+  //     format: 'image/png',
+  //     transparent: true,
+  //     opacity: 0.8,
+  //     version: '1.1.1',
+  //   };
+  //   if (this.nextCacheLayer === 'HOT') {
+  //     if (!this.layerHot) {
+  //       this.layerHot = L.tileLayer
+  //         .wms(GEOSERVER_WMS, layerOptions)
+  //         .addTo(this.map);
+  //       // this.layerHot = L.nonTiledLayer
+  //       //   .wms(GEOSERVER_WMS, {
+  //       //     layers: layerCode,
+  //       //     time: this.layerTime,
+  //       //     format: 'image/png',
+  //       //     transparent: true,
+  //       //     opacity: 0.8,
+  //       //     // version: '1.1.1',
+  //       //     // crs: L.CRS.EPSG4326,
+  //       //     styles: 'test_contour_fill',
+  //       //   })
+  //       //   .addTo(this.map);
+  //       this.layerHot.once('load', this.bringBackLayerCold);
+  //       this.layerHot = L.nonTiledLayer
+  //         .wms(GEOSERVER_WMS, {
+  //           maxZoom: 19,
+  //           minZoom: 4,
+  //           zIndex: 2, // setting a zIndex enforces the layer ordering after adding/removing multiple layers
+  //           opacity: 1.0,
+  //           layers: 'VTMAP:rain_new1',
+  //           format: 'image/png',
+  //           transparent: true,
+  //           attribution: '&copy; terrestris ' + new Date().getFullYear(),
+  //           pane: 'tilePane',
+  //           bounds: L.latLngBounds([-56.0, -180], [60.0, 180]),
+  //           styles: 'dieuum_test_contour',
+  //           // version: '1.1.1',
+  //           // crs: L.CRS.EPSG4326,
+  //           time: this.layerTime,
+  //         })
+  //         .addTo(this.map);
+  //       this.layerHot.once('load', this.bringBackLayerCold);
+
+  //       const latLngBounds = L.latLngBounds([
+  //         [-15.25, 59.75],
+  //         [60.25, 155.25],
+  //       ]);
+  //     } else {
+  //       this.layerHot.off('load', this.bringBackLayerCold);
+  //       this.layerHot.once('load', this.bringBackLayerCold);
+  //       this.layerHot.setParams(layerOptions);
+  //     }
+  //     this.nextCacheLayer = 'COLD';
+  //   } else {
+  //     if (!this.layerCold) {
+  //       this.layerCold = L.tileLayer
+  //         .wms(GEOSERVER_WMS, layerOptions)
+  //         .addTo(this.map);
+  //       this.layerCold.once('load', this.bringBackLayerHot);
+  //     } else {
+
+  //       this.layerCold.off('load', this.bringBackLayerHot);
+  //       this.layerCold.once('load', this.bringBackLayerHot);
+  //       this.layerCold.setParams(layerOptions);
+  //     }
+
+  //     this.nextCacheLayer = 'HOT';
+  //   }
+  //   if (this.isMarkerInfoEnable) {
+  //     this.updateMarkerInfo(undefined);
+  //   }
+  // }
+
   updateLayers() {
     if (!this.map) return;
     const layerCode = this.layers[this.layerMenuSelected].code;
@@ -490,85 +599,24 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       time: this.layerTime,
       format: 'image/png',
       transparent: true,
-      opacity: 0.8,
+      opacity: 1,
       version: '1.1.1',
-      // crs: L.CRS.EPSG4326,
-      // styles: 'test_contour_fill',
+      // DIM_LEV: ''
     };
-    if (this.nextCacheLayer === 'HOT') {
-      if (!this.layerHot) {
-        console.log('#1');
-        this.layerHot = L.tileLayer
-          .wms(GEOSERVER_WMS, layerOptions)
-          .addTo(this.map);
-        // this.layerHot = L.nonTiledLayer
-        //   .wms(GEOSERVER_WMS, {
-        //     layers: layerCode,
-        //     time: this.layerTime,
-        //     format: 'image/png',
-        //     transparent: true,
-        //     opacity: 0.8,
-        //     // version: '1.1.1',
-        //     // crs: L.CRS.EPSG4326,
-        //     styles: 'test_contour_fill',
-        //   })
-        //   .addTo(this.map);
-        this.layerHot.once('load', this.bringBackLayerCold);
-        this.layerHot = L.nonTiledLayer
-          .wms(GEOSERVER_WMS, {
-            maxZoom: 19,
-            minZoom: 4,
-            zIndex: 2, // setting a zIndex enforces the layer ordering after adding/removing multiple layers
-            opacity: 1.0,
-            layers: 'VTMAP:rain_new1',
-            format: 'image/png',
-            transparent: true,
-            attribution: '&copy; terrestris ' + new Date().getFullYear(),
-            pane: 'tilePane',
-            bounds: L.latLngBounds([-56.0, -180], [60.0, 180]),
-            styles: 'dieuum_test_contour',
-            // version: '1.1.1',
-            // crs: L.CRS.EPSG4326,
-            time: this.layerTime,
-          })
-          .addTo(this.map);
-        this.layerHot.once('load', this.bringBackLayerCold);
-
-        const latLngBounds = L.latLngBounds([
-          [-15.25, 59.75],
-          [60.25, 155.25],
-        ]);
-      } else {
-        console.log('#2');
-
-        this.layerHot.off('load', this.bringBackLayerCold);
-        this.layerHot.once('load', this.bringBackLayerCold);
-        this.layerHot.setParams(layerOptions);
-      }
-      console.log(this.layerHot);
-
-      this.nextCacheLayer = 'COLD';
+    if (!this.layerColorFill) {
+      // this.layerColorFill = L.tileLayer
+      this.layerColorFill = L.nonTiledLayer
+        .wms(GEOSERVER_WMS, layerOptions)
+        .addTo(this.map);
     } else {
-      if (!this.layerCold) {
-        console.log('#3');
-
-        this.layerCold = L.tileLayer
-          .wms(GEOSERVER_WMS, layerOptions)
-          .addTo(this.map);
-        this.layerCold.once('load', this.bringBackLayerHot);
-      } else {
-        console.log('#4');
-
-        this.layerCold.off('load', this.bringBackLayerHot);
-        this.layerCold.once('load', this.bringBackLayerHot);
-        this.layerCold.setParams(layerOptions);
-      }
-      console.log(this.layerCold);
-
-      this.nextCacheLayer = 'HOT';
+      this.layerColorFill.setParams(layerOptions);
     }
     if (this.isMarkerInfoEnable) {
       this.updateMarkerInfo(undefined);
+    }
+    this.loadPSContour();
+    if (!this.worldBoundary) {
+      this.loadCountryBourderLayer();  
     }
   }
 
