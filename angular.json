@@ -6,6 +6,9 @@
     "demo-windy": {
       "projectType": "application",
       "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        },
         "@schematics/angular:application": {
           "strict": true
         }
@@ -28,11 +31,14 @@
             ],
             "styles": [
               "src/assets/fontawesome-free-6.1.2-web/css/all.min.css",
+              "node_modules/leaflet-measure/dist/leaflet-measure.css",
               "src/styles.scss"
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/rangeslider.js/dist/rangeslider.min.js"
+              "node_modules/rangeslider.js/dist/rangeslider.min.js",
+              "node_modules/leaflet.browser.print/dist/leaflet.browser.print.js",
+              "node_modules/leaflet-measure/dist/leaflet-measure.min.js"
             ]
           },
           "configurations": {

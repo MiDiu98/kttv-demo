@@ -19,6 +19,8 @@
     "@angular/platform-browser-dynamic": "~13.2.0",
     "@angular/router": "~13.2.0",
     "jquery": "^3.6.0",
+    "leaflet-measure": "^1.2.0",
+    "leaflet.browser.print": "^2.0.2",
     "leaflet.nontiledlayer": "^1.0.9",
     "moment": "^2.29.4",
     "rangeslider.js": "^2.3.3",

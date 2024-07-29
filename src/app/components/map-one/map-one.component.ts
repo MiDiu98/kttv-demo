@@ -55,8 +55,9 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     },
   ];
   TIMELINE_PER_DAY: number[] = [0, 3, 6, 9, 12, 15, 18, 21];
-  START_HOUR: number = 12;
-  END_HOUR: number = 12;
+  // TIMELINE_PER_DAY: number[] = [0, 6, 12, 18];
+  START_HOUR: number = 0;
+  END_HOUR: number = 18;
   isPlaying: boolean = false;
   interval!: any;
   STEP_PER_TIMELINE: number = 100;
@@ -70,7 +71,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       this.TIMELINE_PER_DAY.length *
       this.STEP_PER_TIMELINE -
     1;
-  SPEED: number = 5000 / this.STEP_PER_TIMELINE; // Time for 1 step
+  SPEED: number = 2000 / this.STEP_PER_TIMELINE; // Time for 1 step
   lastStep: number =
     this.max -
     (this.TIMELINE_PER_DAY.length -
@@ -88,13 +89,13 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       // code: 'VTMAP:COVERAGEVIEW_WIND_SPEED',
       // code: 'xwnd',
       // code: 'hs',
-      code: 'u_nc_new1',
+      code: 'rain',
     },
     {
       name: 'Nhiệt độ',
       // code: 'VTMAP:t',
       // code: 'ywnd',
-      code: 'rain_new1',
+      code: 'rain',
     },
     {
       name: 'Mây',
@@ -179,8 +180,8 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     this.map = L.map('windy', {
       center: [16.0544, 108.2022],
       // center: [40.799311, -74.118464],
-      // layers: [worldBoundary],
-      layers: [this.baseLayer],
+      layers: [worldBoundary],
+      // layers: [this.baseLayer],
       zoom: 6,
       maxZoom: 22,
       minZoom: 1,
@@ -204,8 +205,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       iconSize: [120, 20],
     });
     L.marker([9.51856, 112.77977], { icon: TruongSaIcon }).addTo(this.map);
-
-    L.controls.
+    // this.loadCountryBourderLayer()
 
     // this.initWindyMap();
 
@@ -244,6 +244,20 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     });
     this.infoDetailMarker.on('dragend', this.onMarkerDragend);
     this.map.on('zoomend', this.renderTemperatureLayer);
+  }
+
+  loadCountryBourderLayer() {
+    const layerOptions: any = {
+      layers: 'VTMAP:ne_10m_coastline',
+      format: 'image/png',
+      transparent: true,
+      // opacity: 1,
+      crs: L.CRS.EPSG4326,
+      version: '1.1.1',
+    };
+    L.tileLayer
+    .wms(GEOSERVER_WMS, layerOptions)
+    .addTo(this.map);
   }
 
   loadVelocityLayer() {
@@ -455,7 +469,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       (this.timeStep % stepPerDay) / this.STEP_PER_TIMELINE
     );
     const dayQuery = this.calendarList[dayIndex].query;
-    const hour = this.TIMELINE_PER_DAY[hourIndex];
+    const hour = this.TIMELINE_PER_DAY[hourIndex];    
 
     const layerTime = `${dayQuery}T${hour < 10 ? '0' + hour : hour}:00:00Z`;
     if (layerTime !== this.layerTime) {
@@ -463,7 +477,8 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       this.updateLayers();
       this.updateViewTemperatureLayer();
     }
-    const dayDisplay = this.calendarList[dayIndex].display;
+    // const dayDisplay = this.calendarList[dayIndex].display;
+    const dayDisplay = this.calendarList[dayIndex].query;
     this.timeDisplay = `${dayDisplay} - ${hour}:00`;
   }
 
@@ -476,23 +491,9 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       format: 'image/png',
       transparent: true,
       opacity: 0.8,
-      // version: '1.1.0',
-      // attribution: 'Viettelmaps',
-      // zIndex: 1,
-      // LEV: 100,
-      // styles: 'kttv_v',
-      // tileSize: 1024
       version: '1.1.1',
       // crs: L.CRS.EPSG4326,
-      crs: L.CRS.EPSG4326,
-      styles: 'test_contour_fill',
-      // DIM_LEV: 300,
-      // srs: 'EPSG:4326',
-      // tiled: false,
-      // width: 512,
-      // height: 512,
-      // tms: true
-      // format: 'image/vnd.jpeg-png8'
+      // styles: 'test_contour_fill',
     };
     if (this.nextCacheLayer === 'HOT') {
       if (!this.layerHot) {
@@ -500,6 +501,18 @@ export class MapOneComponent implements OnInit, AfterViewInit {
         this.layerHot = L.tileLayer
           .wms(GEOSERVER_WMS, layerOptions)
           .addTo(this.map);
+        // this.layerHot = L.nonTiledLayer
+        //   .wms(GEOSERVER_WMS, {
+        //     layers: layerCode,
+        //     time: this.layerTime,
+        //     format: 'image/png',
+        //     transparent: true,
+        //     opacity: 0.8,
+        //     // version: '1.1.1',
+        //     // crs: L.CRS.EPSG4326,
+        //     styles: 'test_contour_fill',
+        //   })
+        //   .addTo(this.map);
         this.layerHot.once('load', this.bringBackLayerCold);
         this.layerHot = L.nonTiledLayer
           .wms(GEOSERVER_WMS, {
