@@ -34,22 +34,26 @@ export class MapOneComponent implements OnInit, AfterViewInit {
   title = 'demo-windy';
   calendarList: Calendar[] = [
     {
-      display: moment().format(CALENDAR_DISPLAY_FORMAT),
+      // display: moment().format(CALENDAR_DISPLAY_FORMAT),
+      display: '2024-06-18',
       // query: '2024-06-26',
       query: '2024-06-18',
     },
     {
-      display: moment().add(1, 'days').format(CALENDAR_DISPLAY_FORMAT),
+      // display: moment().add(1, 'days').format(CALENDAR_DISPLAY_FORMAT),
+      display: '2024-06-19',
       // query: '2024-06-27',
       query: '2024-06-19',
     },
     {
-      display: moment().add(2, 'days').format(CALENDAR_DISPLAY_FORMAT),
+      // display: moment().add(2, 'days').format(CALENDAR_DISPLAY_FORMAT),
+      display: '2024-06-20',
       // query: '2024-06-28',
       query: '2024-06-20',
     },
     {
-      display: moment().add(3, 'days').format(CALENDAR_DISPLAY_FORMAT),
+      // display: moment().add(3, 'days').format(CALENDAR_DISPLAY_FORMAT),
+      display: '2024-06-21',
       // query: '2024-06-29',
       query: '2024-06-21',
     },
@@ -375,7 +379,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     this.updateMarkerInfo(undefined);
   }
 
-  updateMarkerInfo(latlng: any) {
+  updateMarkerInfo(latlng: any) {    
     const newLatLng = latlng || this.infoDetailMarker.getLatLng();
     const layerCode = this.layers[this.layerMenuSelected].code;
     if (!newLatLng || !layerCode) return;
@@ -634,7 +638,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
         WIDTH: 101,
         HEIGHT: 101,
         BBOX: bbox,
-        // time: this.layerTime,
+        time: this.layerTime,
       },
     };
     return this.http
