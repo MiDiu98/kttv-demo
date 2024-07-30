@@ -71,7 +71,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       this.TIMELINE_PER_DAY.length *
       this.STEP_PER_TIMELINE -
     1;
-  SPEED: number = 2000 / this.STEP_PER_TIMELINE; // Time for 1 step
+  SPEED: number = 4000 / this.STEP_PER_TIMELINE; // Time for 1 step
   lastStep: number =
     this.max -
     (this.TIMELINE_PER_DAY.length -
@@ -88,7 +88,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
   layerMenuSelected: number = 0;
   layers: Layer[] = [
     {
-      name: 'Gió',
+      name: 'Mưa',
       // code: 'VTMAP:COVERAGEVIEW_WIND_SPEED',
       // code: 'xwnd',
       // code: '',
@@ -101,7 +101,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       code: 't',
     },
     {
-      name: 'Mây',
+      name: 'Khí áp',
       // code: 'VTMAP:cloud'
       // code: 'theta0',
       code: 'ps',
@@ -182,8 +182,8 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       maxZoom: 22,
       minZoom: 1,
       zoomControl: false,
-      fitBounds: bounds,
-      maxBounds: bounds,
+      // fitBounds: bounds,
+      // maxBounds: bounds,
     });
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
     this.updateLayers();
@@ -228,7 +228,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       onSlide: this.onTimeSlideHandle,
     });
 
-    // this.loadVelocityLayer();
+    this.loadVelocityLayer();
     // this.loadImageLayer();
 
     this.map.on('click', this.onMapClick);
@@ -294,8 +294,8 @@ export class MapOneComponent implements OnInit, AfterViewInit {
   }
 
   loadVelocityLayer() {
-    this.http.get('assets/2022081100f000.wind.json').subscribe((data) => {
-      // this.http.get('assets/wind2.json').subscribe((data) => {
+    // this.http.get('assets/2022081100f000.wind.json').subscribe((data) => {
+      this.http.get('assets/water-gbr.json').subscribe((data) => {
       this.velocityLayer = L.velocityLayer({
         displayValues: true,
         displayOptions: {
@@ -378,12 +378,13 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     const layerCode = this.layers[this.layerMenuSelected].code;
     if (!newLatLng || !layerCode) return;
     this.getLayerFeatureInfo(
-      // layerCode === 'VTMAP:COVERAGEVIEW_WIND_SPEED'
-      //   ? 'VTMAP:COVERAGEVIEW_wind'
-      //   : layerCode,
-      'VTMAP:xwnd',
+      layerCode === 'VTMAP:COVERAGEVIEW_WIND_SPEED'
+        ? 'VTMAP:COVERAGEVIEW_wind'
+        : layerCode,
       newLatLng
     ).subscribe((res: any) => {
+      console.log(res);
+
       let contentValue: string = 'Không xác định';
       if (res.features && res.features.length > 0) {
         const { properties } = res.features[0];
@@ -409,28 +410,32 @@ export class MapOneComponent implements OnInit, AfterViewInit {
               }
             }
             const rotateDeg = -45 + directionAngle;
-            contentValue = `<div class="wind-direction" title="Hướng gió từ"><i class="fa-solid fa-location-arrow" style="transform: rotate(${rotateDeg}deg)"></i>${directionCode}</div> ${Math.round(
-              wind
-            )}m/s`;
-            // contentValue = Math.round(wind) + 'm/s';
+            // contentValue = `<div class="wind-direction" title="Hướng gió từ"><i class="fa-solid fa-location-arrow" style="transform: rotate(${rotateDeg}deg)"></i>${directionCode}</div> ${Math.round(
+            //   wind
+            // )}m/s`;
+            contentValue = Math.round(properties.rain) + ' mm';
             break;
 
           case 1:
             // Nhiệt độ
-            const t = properties.t * 0.01 + 250.15; // độ K
-            contentValue = Math.round(t - 273.15) + '°C';
+            // const t = properties.t * 0.01 + 250.15; // độ K
+            // contentValue = Math.round(t - 273.15) + '°C';
+            const t = properties.t; // độ K
+            contentValue = Math.round(t - 273.15) + ' °C';
             break;
 
           case 2:
             // Mây
-            const cloud = properties.cloud * 0.0001 + 0;
-            contentValue = Math.round(cloud * 100) + '%';
+            // const cloud = properties.cloud * 0.0001 + 0;
+            // contentValue = Math.round(cloud * 100) + '%';
+            const airPressure = properties.ps;
+            contentValue = Math.round(airPressure) + ' hPa';
             break;
 
           default:
             break;
         }
-        contentValue = properties['U-Component_of_Wind'];
+        // contentValue = properties[layerCode];
       } else {
         console.log('Error');
         console.log(res.exceptions);
@@ -599,13 +604,13 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       time: this.layerTime,
       format: 'image/png',
       transparent: true,
-      opacity: 1,
+      opacity: 0.8,
       version: '1.1.1',
       // DIM_LEV: ''
     };
     if (!this.layerColorFill) {
-      // this.layerColorFill = L.tileLayer
-      this.layerColorFill = L.nonTiledLayer
+      this.layerColorFill = L.tileLayer
+      // this.layerColorFill = L.nonTiledLayer
         .wms(GEOSERVER_WMS, layerOptions)
         .addTo(this.map);
     } else {
