@@ -194,6 +194,9 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
     this.updateLayers();
     this.updateViewTemperatureLayer();
+    this.loadHurricaneTrajectory();
+    this.loadLatLngGraticule();
+
     // Marker Hoàng sa, trường sa
     const HoangSaIcon = L.divIcon({
       html: `Quần đảo Hoàng Sa (Việt Nam)`,
@@ -250,6 +253,19 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     this.map.on('zoomend', this.renderTemperatureLayer);
   }
 
+  loadLatLngGraticule() {
+    L.latlngGraticule({
+      showLabel: true,
+      dashArray: [5, 5],
+      zoomInterval: [
+        { start: 2, end: 3, interval: 30 },
+        { start: 4, end: 4, interval: 10 },
+        { start: 5, end: 7, interval: 5 },
+        { start: 8, end: 10, interval: 1 },
+      ],
+    }).addTo(this.map);
+  }
+
   loadCountryBourderLayer() {
     //  this.worldBoundary = L.tileLayer(
     //   GEOSERVER_DOMAIN +
@@ -265,7 +281,6 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     //   }
     // )
     // this.worldBoundary.addTo(this.map);
-
     this.worldBoundary = L.nonTiledLayer
       .wms(GEOSERVER_WMS, {
         layers: 'kttv_base',
@@ -297,6 +312,58 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     } else {
       this.layerColorContour.setParams(layerOptions);
     }
+  }
+
+  loadHurricaneTrajectory() {
+    this.http.get('assets/tc1_gfs.json').subscribe((data: any) => {
+      let info = data[0];
+      let hurricaneTrajectory = data.slice(1);
+      let hurricaneTrack = hurricaneTrajectory.map((feature: any) => [
+        feature.Latitude,
+        feature.Longitude,
+      ]);
+
+      let trajectoryLine = L.polyline(hurricaneTrack, {
+        color: '#000000',
+        weight: 2,
+        opacity: 1,
+      }).addTo(this.map);
+
+      for (let i = 0; i < hurricaneTrajectory.length - 1; i++) {
+        let feature = hurricaneTrajectory[i];
+
+        let stormEye = L.circle([feature.Latitude, feature.Longitude], {
+          radius: feature.rvmax * 10,
+          color: '#FF0000',
+          // strokeWidth: 4,
+          fillColor: '#FF0000',
+          fillOpacity: 0.8,
+        }).addTo(this.map);
+
+        let circle = L.circle([feature.Latitude, feature.Longitude], {
+          radius: feature.rvmax * 100,
+          color: '#FFFFFF',
+          fillColor: '#00FF00',
+        }).addTo(this.map);
+
+        // L.featureGroup([marker, circle]).addTo(this.map);
+      }
+
+      let feature = hurricaneTrajectory[hurricaneTrajectory.length - 1];
+      const stormEyeIcon = L.divIcon({
+        className: '',
+        html: `<div class="storm-eye"><img src="assets/icon.gif" style="width: 32px; height: 32px;"><div class="storm-info"><p class="fw-bold">${moment(
+          feature.Time
+        ).format('DD/MM/YYYY - HH:mm')}</p><p>Bán kính: ${feature.rvmax.toFixed(
+          3
+        )}km</p><p>Vận tốc gió: ${feature.vmax.toFixed(3)}m/s</p></div></div`,
+        iconSize: [32, 32],
+      });
+
+      let marker = L.marker([feature.Latitude, feature.Longitude], {
+        icon: stormEyeIcon,
+      }).addTo(this.map);
+    });
   }
 
   loadVelocityLayer() {
@@ -379,7 +446,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     this.updateMarkerInfo(undefined);
   }
 
-  updateMarkerInfo(latlng: any) {    
+  updateMarkerInfo(latlng: any) {
     const newLatLng = latlng || this.infoDetailMarker.getLatLng();
     const layerCode = this.layers[this.layerMenuSelected].code;
     if (!newLatLng || !layerCode) return;

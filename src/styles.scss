@@ -2,14 +2,15 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system,system-ui,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", sans-serif;
 }
 
 .temp-station {
   color: white;
   text-shadow: 1px 1px 1px #000000;
   .m-0 {
-    margin: 0
+    margin: 0;
   }
 }
 
@@ -36,20 +37,20 @@ body {
   z-index: 1;
   margin-left: 45px;
 }
-.range input[type=range] {
+.range input[type="range"] {
   -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   padding: 0;
   width: 100%;
   height: 22px;
   cursor: pointer;
   display: block;
 }
-.range input[type=range]:focus {
+.range input[type="range"]:focus {
   outline: none;
 }
-.range input[type=range][disabled] {
+.range input[type="range"][disabled] {
   opacity: 0.3;
   cursor: default;
 }
@@ -58,9 +59,9 @@ body {
   height: 22px;
   cursor: pointer;
   -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-          user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .range .rangeslider:before {
   box-sizing: border-box;
@@ -68,7 +69,7 @@ body {
   /* height: 4px; */
   height: 6px;
   /* background: #e6e6e6; */
-  background: rgba(68,65,65,0.84);
+  background: rgba(68, 65, 65, 0.84);
   border-radius: 100px;
   content: "";
   position: absolute;
@@ -135,7 +136,7 @@ body {
   background: #333940;
   cursor: pointer;
   -webkit-appearance: none;
-          appearance: none;
+  appearance: none;
   transform: translateY(-50%);
   margin-top: 2px;
 }
@@ -183,9 +184,9 @@ body {
   transform-origin: 0 0;
   transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-          user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .range .range-output .output {
   /* display: block;
@@ -243,8 +244,8 @@ body {
   cursor: move !important;
   font-size: 11px;
   letter-spacing: 1px;
-  transition: .3s opacity 0s;
-  -webkit-transition: .3s opacity 0s;
+  transition: 0.3s opacity 0s;
+  -webkit-transition: 0.3s opacity 0s;
   animation: fadein-full 1s;
   -webkit-animation: fadein-full 1s;
   opacity: 0;
@@ -260,7 +261,7 @@ body {
 }
 .picker .picker-lines {
   position: relative;
-  border-left: 2px solid rgba(68,65,65,0.84);
+  border-left: 2px solid rgba(68, 65, 65, 0.84);
   height: 125px;
   cursor: move;
 }
@@ -268,7 +269,7 @@ body {
 .picker .picker-lines::before {
   display: block;
   position: absolute;
-  content: '';
+  content: "";
   left: -10px;
   right: 0;
   width: 20px;
@@ -284,7 +285,7 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 4px;
-  content: '';
+  content: "";
 }
 
 .picker .picker-content {
@@ -294,7 +295,7 @@ body {
   cursor: move;
   white-space: nowrap;
   color: white;
-  background-color: rgba(68,65,65,0.84);
+  background-color: rgba(68, 65, 65, 0.84);
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
 }
@@ -322,8 +323,8 @@ body {
   background-clip: padding-box;
   left: calc(100%);
   top: -15px;
-  transition: .3s opacity 0s;
-  -webkit-transition: .3s opacity 0s;
+  transition: 0.3s opacity 0s;
+  -webkit-transition: 0.3s opacity 0s;
   cursor: pointer;
   display: block;
   position: absolute;
@@ -343,7 +344,7 @@ body {
   padding-left: 1px;
   /* padding: 0.25em; */
   border: 0;
-  background-color: rgba(68,65,65,0.84);
+  background-color: rgba(68, 65, 65, 0.84);
 }
 
 .text-label {
@@ -367,7 +368,7 @@ body {
   display: inline;
   font-style: inherit;
   color: #e4d5bd;
-  font-size: .8em;
+  font-size: 0.8em;
 }
 
 .wind-direction i {
@@ -377,4 +378,38 @@ body {
 
 .leaflet-control-zoom {
   margin-bottom: 30px !important;
+}
+
+.storm-eye {
+  position: relative;
+  .storm-info {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    background: white;
+    opacity: 0.8;
+    padding: 5px;
+    width: 125px;
+    border-radius: 5px;
+    p {
+      margin: 0;
+    }
+    .fw-bold {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  }
+}
+
+.storm-popup {
+  padding: 5px;
+  width: 125px;
+  border-radius: 5px;
+  p {
+    margin: 0;
+  }
+  .fw-bold {
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
 }
