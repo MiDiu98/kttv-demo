@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import * as moment from 'moment';
 import { Observable, Subject, takeUntil } from 'rxjs';
+import circleToPolygon from 'circle-to-polygon';
+import * as turf from '@turf/turf';
 
 declare var Windy: any; // Declare Windy as a global variable
 declare var L: any;
@@ -32,6 +34,8 @@ interface Layer {
 })
 export class MapOneComponent implements OnInit, AfterViewInit {
   title = 'demo-windy';
+  DEFAULT_RADIUS = 100;
+  DEFAULT_MAX_RADIUS = 200;
   calendarList: Calendar[] = [
     {
       // display: moment().format(CALENDAR_DISPLAY_FORMAT),
@@ -318,36 +322,17 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     this.http.get('assets/tc1_gfs.json').subscribe((data: any) => {
       let info = data[0];
       let hurricaneTrajectory = data.slice(1);
-      let hurricaneTrack = hurricaneTrajectory.map((feature: any) => [
-        feature.Latitude,
-        feature.Longitude,
-      ]);
+      // let hurricaneTrack = hurricaneTrajectory.map((feature: any) => [
+      //   feature.Latitude,
+      //   feature.Longitude,
+      // ]);
 
-      let trajectoryLine = L.polyline(hurricaneTrack, {
-        color: '#000000',
-        weight: 2,
-        opacity: 1,
-      }).addTo(this.map);
-
-      for (let i = 0; i < hurricaneTrajectory.length - 1; i++) {
-        let feature = hurricaneTrajectory[i];
-
-        let stormEye = L.circle([feature.Latitude, feature.Longitude], {
-          radius: feature.rvmax * 10,
-          color: '#FF0000',
-          // strokeWidth: 4,
-          fillColor: '#FF0000',
-          fillOpacity: 0.8,
-        }).addTo(this.map);
-
-        let circle = L.circle([feature.Latitude, feature.Longitude], {
-          radius: feature.rvmax * 100,
-          color: '#FFFFFF',
-          fillColor: '#00FF00',
-        }).addTo(this.map);
-
-        // L.featureGroup([marker, circle]).addTo(this.map);
-      }
+      // let trajectoryLine = L.polyline(hurricaneTrack, {
+      //   color: '#000000',
+      //   weight: 2,
+      //   opacity: 1,
+      // }).addTo(this.map);
+      this.drawStormInTimeline(hurricaneTrajectory);
 
       let feature = hurricaneTrajectory[hurricaneTrajectory.length - 1];
       const stormEyeIcon = L.divIcon({
@@ -456,8 +441,6 @@ export class MapOneComponent implements OnInit, AfterViewInit {
         : layerCode,
       newLatLng
     ).subscribe((res: any) => {
-      console.log(res);
-
       let contentValue: string = 'Không xác định';
       if (res.features && res.features.length > 0) {
         const { properties } = res.features[0];
@@ -785,5 +768,271 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     windy.on('load', () => {
       console.log('Windy API loaded');
     });
+  }
+
+  drawStormInTimeline(hurricaneTrajectory: any) {
+    const circleOptionsDefault = {
+      color: '#FFFFFF',
+      strokeWidth: 2,
+      fillColor: '#0BFF00',
+      fillOpacity: 1,
+    };
+
+    const circleOptionsOverlay = {
+      color: '#FF22E9',
+      weight: 0,
+      opacity: 0.29,
+      fillColor: '#FF22E9',
+      fillOpacity: 0.29,
+    };
+
+    this.drawStormLayer(
+      hurricaneTrajectory,
+      circleOptionsOverlay,
+      this.DEFAULT_MAX_RADIUS,
+      '#FF22E9',
+      0.3
+    );
+    setTimeout(() => {
+      this.drawStormLayer(
+        hurricaneTrajectory,
+        circleOptionsDefault,
+        this.DEFAULT_RADIUS,
+        '#0BFF00',
+        0.6
+      );
+      this.drawStormPath(hurricaneTrajectory);
+    }, 2000);
+  }
+
+  drawStormPath(hurricaneTrajectory: any) {
+    const length = hurricaneTrajectory.length;
+    const lineOptions = {
+      color: '#EBFF00',
+      weight: 2,
+      opacity: 1,
+    };
+    const stormEyeIcon = L.divIcon({
+      className: '',
+      html: `<div class="storm-eye"><img src="assets/Vector.svg" style="width: 20px; height: 20px;"></div>`,
+      iconSize: [20, 20],
+    });
+
+    let i = 1;
+    const loadStormEye = setInterval(() => {
+      const feature = hurricaneTrajectory[i];
+
+      // Draw storm affected area if not the last feature
+      if (i > 0) {
+        const preFeature = hurricaneTrajectory[i - 1];
+        L.polyline(
+          [
+            [feature.Latitude, feature.Longitude],
+            [preFeature.Latitude, preFeature.Longitude],
+          ],
+          lineOptions
+        ).addTo(this.map);
+      }
+
+      L.marker([feature.Latitude, feature.Longitude], {
+        icon: stormEyeIcon,
+      }).addTo(this.map);
+
+      if (i === length - 1) {
+        clearInterval(loadStormEye);
+      } else {
+        i++;
+      }
+    }, 0);
+  }
+
+  /** Draw layer storm */
+  drawStormLayer(
+    hurricaneTrajectory: any,
+    circleOptions: any,
+    ratioRadius: number,
+    color: string,
+    opacity: number
+  ) {
+    let i = 1;
+    const loadStormEye = setInterval(() => {
+      const feature = hurricaneTrajectory[i];
+
+      // Draw storm affected area if not the last feature
+      if (i > 0) {
+        
+        const preFeature = hurricaneTrajectory[i - 1];
+        if (!preFeature) return;
+        const { Latitude, Longitude, rvmax } = preFeature;
+
+        // L.polyline(
+        //   [
+        //     [feature.Latitude, feature.Longitude],
+        //     [preFeature.Latitude, preFeature.Longitude],
+        //   ],
+        //   lineOptions
+        // ).addTo(this.map);
+
+        this.drawTheStormAffectedArea(
+          preFeature,
+          feature,
+          ratioRadius,
+          color,
+          opacity
+        );
+
+        // Create the main circle
+        L.circle([Latitude, Longitude], {
+          radius: rvmax * ratioRadius,
+          ...circleOptions,
+        }).addTo(this.map);
+      }
+
+      if (i === length - 1) {
+        clearInterval(loadStormEye);
+      } else {
+        i++;
+      }
+    }, 0);
+  }
+
+  /** Draw the storm affected area */
+  drawTheStormAffectedArea(
+    circle1: any,
+    circle2: any,
+    ratioRadius: number,
+    color: string,
+    opacity: number
+  ) {
+    if (!circle1 || !circle2) return;
+    circle1 = JSON.parse(JSON.stringify(circle1));
+    circle2 = JSON.parse(JSON.stringify(circle2));
+    circle1.rvmax = circle1.rvmax * ratioRadius;
+    circle2.rvmax = circle2.rvmax * ratioRadius;
+
+    /** Swap to find make sure circle1 is smaller than circle2, and mapping with formuler to find general point */
+    if (circle1.rvmax > circle2.rvmax) {
+      let temp = circle1;
+      circle1 = circle2;
+      circle2 = temp;
+    }
+
+    if (circle1.rvmax === circle2.rvmax) {
+      this.drawTangentTwoCircleSameRadius(circle1, circle2, color, opacity);
+    } else {
+      this.drawTangentTwoCircle(circle1, circle2, color, opacity);
+    }
+  }
+
+  drawTangentTwoCircleSameRadius(
+    circle1: any,
+    circle2: any,
+    color: string,
+    opacity: number
+  ) {
+    let center1 = [circle1.Longitude, circle1.Latitude];
+    let center2 = [circle2.Longitude, circle2.Latitude];
+
+    let offsetLine1 = turf.lineOffset(
+      turf.lineString([center1, center2]),
+      circle1.rvmax,
+      {
+        units: 'meters',
+      }
+    );
+    let offsetLine2 = turf.lineOffset(
+      turf.lineString([center2, center1]),
+      circle2.rvmax,
+      { units: 'meters' }
+    );
+  }
+
+  drawTangentTwoCircle(
+    circle1: any,
+    circle2: any,
+    color: string,
+    opacity: number
+  ) {
+    /** The idea of ​​drawing tangents to two circles
+     * is to find a point where its tangents to the two circles will coincide.
+     * Extend the tangent of 2 circles to get the required point,
+     * this point belongs to the line passing through the center of 2 circles.
+     * Then 2 similar triangles will appear, based on the ratio in similar triangles
+     * we can determine the distance of this point to 2 centers.
+     *
+     * Let (O, R1) and (I, R2) be the center, radius of 2 circles; P is the required point
+     * with the order on the line respectively O, I, P then we have the ratio:
+     * @params R2/R1 = IP/OP = IP/(OI + IP)  => IP = R2*OI/(R1 - R2)
+     */
+    let pointI = [circle1.Longitude, circle1.Latitude];
+    let pointO = [circle2.Longitude, circle2.Latitude];
+    let options = { units: 'meters' as turf.Units };
+    let OI = turf.distance(pointI, pointO, options);
+    let OP = OI + (OI * circle1.rvmax) / (circle2.rvmax - circle1.rvmax);
+    let pointP = this.findPointAlongExtendLine(
+      pointI,
+      pointO,
+      OI,
+      OP,
+      options.units
+    );
+    let point = turf.point(pointP);
+
+    /** Find t */
+    let circlePolygon1 = circleToPolygon(
+      [circle1.Longitude, circle1.Latitude],
+      circle1.rvmax,
+      32
+    );
+    let circlePolygon2 = circleToPolygon(
+      [circle2.Longitude, circle2.Latitude],
+      circle2.rvmax,
+      32
+    );
+    let polygon1 = turf.polygon([circlePolygon1.coordinates[0]]);
+    let polygon2 = turf.polygon([circlePolygon2.coordinates[0]]);
+    let tangents1 = turf.polygonTangents(point, polygon1);
+    let tangents2 = turf.polygonTangents(point, polygon2);
+
+    let coordinateCircle1_1 = tangents1.features[0].geometry.coordinates;
+    let coordinateCircle1_2 = tangents1.features[1].geometry.coordinates;
+    let coordinateCircle2_1 = tangents2.features[0].geometry.coordinates;
+    let coordinateCircle2_2 = tangents2.features[1].geometry.coordinates;
+
+    let track = [
+      coordinateCircle1_1,
+      coordinateCircle1_2,
+      coordinateCircle2_2,
+      coordinateCircle2_1,
+    ].map((point) => [point[1], point[0]]);
+
+    const polygon = L.polygon(track, {
+      color: color,
+      weight: 0,
+      opacity: opacity,
+      fillColor: color,
+      fillOpacity: opacity,
+    }).addTo(this.map);
+  }
+
+  /**
+   * @method  Find a point along a line another point a certain distance away from another point
+   * based on the answer here: @link https://math.stackexchange.com/questions/175896/finding-a-point-along-a-line-a-certain-distance-away-from-another-point
+   * Then point (xt,yt)=(((1−t)x0+tx1),((1−t)y0+ty1))
+   */
+  findPointAlongExtendLine(
+    point1: any,
+    point2: any,
+    distanceAB: number,
+    distanceABC: number,
+    unit: turf.Units
+  ) {
+    let t = distanceABC / distanceAB;
+    let pointC = [
+      (1 - t) * point2[0] + t * point1[0],
+      (1 - t) * point2[1] + t * point1[1],
+    ];
+
+    return pointC;
   }
 }

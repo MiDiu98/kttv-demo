@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import circleToPolygon from 'circle-to-polygon';
+import * as turf from '@turf/turf';
 // import * as L from 'leaflet';
 // var L = require('leaflet');
 // require('leaflet-measure');
 
 declare var L: any;
-
 const GEOSERVER_DOMAIN = 'http://10.60.109.17:8080/gsv18';
 
 @Component({
@@ -13,6 +14,8 @@ const GEOSERVER_DOMAIN = 'http://10.60.109.17:8080/gsv18';
   styleUrls: ['./map-two.component.scss'],
 })
 export class MapTwoComponent implements OnInit {
+  DEFAULT_RADIUS = 100;
+  DEFAULT_MAX_RADIUS = 300;
   map: any;
   homeMarker: any = undefined;
   homeMarkerCircle: any = undefined;
@@ -25,8 +28,9 @@ export class MapTwoComponent implements OnInit {
 
   ngAfterViewInit(): void {
     this.renderMap();
-    this.renderMarker();
-    this.showMyLocation();
+    // this.renderMarker();
+    // this.showMyLocation();
+    this.drawTangentTwoCircle();
   }
 
   renderMap() {
@@ -109,5 +113,175 @@ export class MapTwoComponent implements OnInit {
       this.homeMarkerCircle,
     ]).addTo(this.map);
     this.map.fitBounds(featureGroup.getBounds());
+  }
+
+  drawTangentTwoCircle() {
+    const circle1 = {
+      Time: 1664334000,
+      Latitude: 15.565423965454102,
+      Longitude: 108.03556060791016,
+      Altitude: 972.6632080078125,
+      rvmax: 72.37226104736328 * this.DEFAULT_MAX_RADIUS,
+      vmax: 25.255535125732422,
+    };
+    const circle2 = {
+      Time: 1664344800,
+      Latitude: 15.767115592956543,
+      Longitude: 107.49742889404297,
+      Altitude: 987.0066528320312,
+      rvmax: 92.53065490722656 * this.DEFAULT_MAX_RADIUS,
+      vmax: 21.281734466552734,
+    };
+
+    /** Draw two circles */
+    L.circle([circle1.Latitude, circle1.Longitude], {
+      radius: circle1.rvmax,
+    }).addTo(this.map);
+    L.circle([circle2.Latitude, circle2.Longitude], {
+      radius: circle2.rvmax,
+    }).addTo(this.map);
+
+    /** The idea of ​​drawing tangents to two circles
+     * is to find a point where its tangents to the two circles will coincide.
+     * Extend the tangent of 2 circles to get the required point,
+     * this point belongs to the line passing through the center of 2 circles.
+     * Then 2 similar triangles will appear, based on the ratio in similar triangles
+     * we can determine the distance of this point to 2 centers.
+     *
+     * Let (O, R1) and (I, R2) be the center, radius of 2 circles; P is the required point
+     * with the order on the line respectively O, I, P then we have the ratio:
+     * @params R2/R1 = IP/OP = IP/(OI + IP)  => IP = R2*OI/(R1 - R2)
+     */
+    let pointI = [circle1.Longitude, circle1.Latitude];
+    let pointO = [circle2.Longitude, circle2.Latitude];
+    let options = { units: 'kilometers' as turf.Units };
+    let OI = turf.distance(pointI, pointO, options);
+    let OP = OI + (OI * circle1.rvmax) / (circle2.rvmax - circle1.rvmax);
+    let pointP = this.findPointAlongExtendLine(
+      pointI,
+      pointO,
+      OI,
+      OP,
+      options.units
+    );
+    let point = turf.point(pointP);
+
+    /** Find t */
+    let circlePolygon1 = circleToPolygon(
+      [circle1.Longitude, circle1.Latitude],
+      circle1.rvmax,
+      32
+    );
+    let circlePolygon2 = circleToPolygon(
+      [circle2.Longitude, circle2.Latitude],
+      circle2.rvmax,
+      32
+    );
+    let polygon1 = turf.polygon([circlePolygon1.coordinates[0]]);
+    let polygon2 = turf.polygon([circlePolygon2.coordinates[0]]);
+    let tangents1 = turf.polygonTangents(point, polygon1);
+    let tangents2 = turf.polygonTangents(point, polygon2);
+
+    let coordinateCircle1_1 = tangents1.features[0].geometry.coordinates;
+    let coordinateCircle1_2 = tangents1.features[1].geometry.coordinates;
+    let coordinateCircle2_1 = tangents2.features[0].geometry.coordinates;
+    let coordinateCircle2_2 = tangents2.features[1].geometry.coordinates;
+
+    let track = [
+      coordinateCircle1_1,
+      coordinateCircle1_2,
+      coordinateCircle2_2,
+      coordinateCircle2_1,
+    ].map((point) => [point[1], point[0]]);
+
+    const polygon = L.polygon(track, {
+      color: 'red',
+      fillColor: '#f03',
+      fillOpacity: 0.5,
+    }).addTo(this.map);
+
+    this.drawMainAffectAreaByStorm(
+      coordinateCircle1_1,
+      coordinateCircle1_2,
+      coordinateCircle2_1,
+      coordinateCircle2_2,
+      circle1.rvmax
+    );
+  }
+
+  /** Draw main affect area by storm */
+  drawMainAffectAreaByStorm(
+    coord1_1: any,
+    coord1_2: any,
+    coord2_1: any,
+    coord2_2: any,
+    rvmax: number
+  ) {
+    // let line1 = turf.lineString([coord1_1, coord1_2]);
+    // let line2 = turf.lineString([coord2_1, coord2_2]);
+
+    console.log(rvmax * this.DEFAULT_MAX_RADIUS);
+    console.log(rvmax * (this.DEFAULT_MAX_RADIUS - this.DEFAULT_RADIUS));
+    let mainLine1 = turf.lineOffset(
+      turf.lineString([coord1_1, coord2_1]),
+      // - rvmax * (this.DEFAULT_MAX_RADIUS - this.DEFAULT_RADIUS),
+      -4342,
+      {
+        units: 'meters',
+      }
+    );
+    let mainLine2 = turf.lineOffset(
+      turf.lineString([coord2_2, coord1_2]),
+      // -rvmax * (this.DEFAULT_MAX_RADIUS - this.DEFAULT_RADIUS),
+      -4342,
+      {
+        units: 'meters',
+      }
+    );
+
+    console.log(mainLine1);
+    console.log(mainLine2);
+
+    let coordinateCircle1_1 = mainLine1.geometry.coordinates[0];
+    let coordinateCircle1_2 = mainLine1.geometry.coordinates[1];
+    let coordinateCircle2_1 = mainLine2.geometry.coordinates[0];
+    let coordinateCircle2_2 = mainLine2.geometry.coordinates[1];
+
+    let track = [
+      coordinateCircle1_1,
+      coordinateCircle1_2,
+      coordinateCircle2_1,
+      coordinateCircle2_2,
+    ].map((point) => [point[1], point[0]]);
+
+    const polygon = L.polygon(track, {
+      color: '#3BF131',
+      weight: 0,
+      opacity: 0.8,
+      fillColor: '#3BF131',
+      fillOpacity: 0.8,
+    }).addTo(this.map);
+  }
+
+  /**
+   * @method  Find a point along a line another point a certain distance away from another point
+   * based on the answer here: @link https://math.stackexchange.com/questions/175896/finding-a-point-along-a-line-a-certain-distance-away-from-another-point
+   * Then point (xt,yt)=(((1−t)x0+tx1),((1−t)y0+ty1))
+   */
+  findPointAlongExtendLine(
+    point1: any,
+    point2: any,
+    distanceAB: number,
+    distanceABC: number,
+    unit: turf.Units
+  ) {
+    let t = distanceABC / distanceAB;
+    let pointC = [
+      (1 - t) * point2[0] + t * point1[0],
+      (1 - t) * point2[1] + t * point1[1],
+    ];
+
+    L.marker([pointC[1], pointC[0]]).addTo(this.map);
+    return pointC;
   }
 }
