@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import circleToPolygon from 'circle-to-polygon';
 import * as turf from '@turf/turf';
+import { HttpClient } from '@angular/common/http';
 // import * as L from 'leaflet';
 // var L = require('leaflet');
 // require('leaflet-measure');
@@ -19,9 +20,20 @@ export class MapTwoComponent implements OnInit {
   map: any;
   homeMarker: any = undefined;
   homeMarkerCircle: any = undefined;
+  geojson: any = undefined;
+  private infoControl!: any;
+  private legendControl!: any;
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.getPosition = this.getPosition.bind(this);
+    this.getColor = this.getColor.bind(this);
+    this.setStateStyle = this.setStateStyle.bind(this);
+    this.onEachFeature = this.onEachFeature.bind(this);
+    this.highlightFeature = this.highlightFeature.bind(this);
+    this.resetHighlight = this.resetHighlight.bind(this);
+    this.zoomToFeature = this.zoomToFeature.bind(this);
+    this.createLegendControl = this.createLegendControl.bind(this);
+    this.createLegendStyle = this.createLegendStyle.bind(this);
   }
 
   ngOnInit(): void {}
@@ -30,7 +42,10 @@ export class MapTwoComponent implements OnInit {
     this.renderMap();
     // this.renderMarker();
     // this.showMyLocation();
-    this.drawTangentTwoCircle();
+    // this.drawTangentTwoCircle();
+    this.renderChoropleth();
+    this.addCustomControl();
+    this.testPane();
   }
 
   renderMap() {
@@ -58,6 +73,7 @@ export class MapTwoComponent implements OnInit {
     });
 
     this.addMapControl();
+    this.testGroupLayer();
   }
 
   addMapControl() {
@@ -187,7 +203,7 @@ export class MapTwoComponent implements OnInit {
     let coordinateCircle2_1 = tangents2.features[0].geometry.coordinates;
     let coordinateCircle2_2 = tangents2.features[1].geometry.coordinates;
 
-    let track = [
+    let track: [number, number][] = [
       coordinateCircle1_1,
       coordinateCircle1_2,
       coordinateCircle2_2,
@@ -220,8 +236,8 @@ export class MapTwoComponent implements OnInit {
     // let line1 = turf.lineString([coord1_1, coord1_2]);
     // let line2 = turf.lineString([coord2_1, coord2_2]);
 
-    console.log(rvmax * this.DEFAULT_MAX_RADIUS);
-    console.log(rvmax * (this.DEFAULT_MAX_RADIUS - this.DEFAULT_RADIUS));
+    // console.log(rvmax * this.DEFAULT_MAX_RADIUS);
+    // console.log(rvmax * (this.DEFAULT_MAX_RADIUS - this.DEFAULT_RADIUS));
     let mainLine1 = turf.lineOffset(
       turf.lineString([coord1_1, coord2_1]),
       // - rvmax * (this.DEFAULT_MAX_RADIUS - this.DEFAULT_RADIUS),
@@ -239,15 +255,15 @@ export class MapTwoComponent implements OnInit {
       }
     );
 
-    console.log(mainLine1);
-    console.log(mainLine2);
+    // console.log(mainLine1);
+    // console.log(mainLine2);
 
     let coordinateCircle1_1 = mainLine1.geometry.coordinates[0];
     let coordinateCircle1_2 = mainLine1.geometry.coordinates[1];
     let coordinateCircle2_1 = mainLine2.geometry.coordinates[0];
     let coordinateCircle2_2 = mainLine2.geometry.coordinates[1];
 
-    let track = [
+    let track: [number, number][] = [
       coordinateCircle1_1,
       coordinateCircle1_2,
       coordinateCircle2_1,
@@ -283,5 +299,232 @@ export class MapTwoComponent implements OnInit {
 
     L.marker([pointC[1], pointC[0]]).addTo(this.map);
     return pointC;
+  }
+
+  /** Test group layer */
+  testGroupLayer() {
+    var littleton = L.marker([39.61, -105.02]).bindPopup(
+        'This is Littleton, CO.'
+      ),
+      denver = L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.'),
+      aurora = L.marker([39.73, -104.8]).bindPopup('This is Aurora, CO.'),
+      golden = L.marker([39.77, -105.23]).bindPopup('This is Golden, CO.');
+
+    var cities = L.layerGroup([littleton, denver, aurora, golden]);
+    var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap',
+    });
+
+    var osmHOT = L.tileLayer(
+      'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+      {
+        maxZoom: 19,
+        attribution:
+          '© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France',
+      }
+    );
+
+    var baseMaps = {
+      OpenStreetMap: osm,
+      "<span style='color: red'>OpenStreetMap.HOT</span>": osmHOT,
+    };
+
+    var overlayMaps = {
+      Cities: cities,
+    };
+    var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(this.map);
+
+    /** Updated layer, group layer */
+    var crownHill = L.marker([39.75, -105.09]).bindPopup(
+        'This is Crown Hill Park.'
+      ),
+      rubyHill = L.marker([39.68, -105.0]).bindPopup('This is Ruby Hill Park.');
+
+    var parks = L.layerGroup([crownHill, rubyHill]);
+    var openTopoMap = L.tileLayer(
+      'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+      {
+        maxZoom: 19,
+        attribution:
+          'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)',
+      }
+    );
+
+    layerControl.addBaseLayer(openTopoMap, 'OpenTopoMap');
+    layerControl.addOverlay(parks, 'Parks');
+
+    setTimeout(() => {
+      layerControl.removeLayer(openTopoMap);
+      layerControl.removeLayer(parks);
+    }, 3000);
+
+    // console.log('Baselayer: ', layerControl.getContainer());
+    // console.log('Overlayer: ', layerControl.getContainer());
+  }
+
+  renderChoropleth() {
+    this.http.get('assets/us-state.json').subscribe((statesData: any) => {
+      this.geojson = L.geoJson(statesData, {
+        style: this.setStateStyle,
+        onEachFeature: this.onEachFeature,
+      }).addTo(this.map);
+    });
+  }
+
+  setStateStyle(feature: any) {
+    return {
+      fillColor: this.getColor(feature.properties.density),
+      weight: 2,
+      opacity: 1,
+      color: 'white',
+      dashArray: '3',
+      fillOpacity: 0.7,
+    };
+  }
+
+  getColor(d: any) {
+    return d > 1000
+      ? '#800026'
+      : d > 500
+      ? '#BD0026'
+      : d > 200
+      ? '#E31A1C'
+      : d > 100
+      ? '#FC4E2A'
+      : d > 50
+      ? '#FD8D3C'
+      : d > 20
+      ? '#FEB24C'
+      : d > 10
+      ? '#FED976'
+      : '#FFEDA0';
+  }
+
+  highlightFeature(e: any) {
+    var layer = e.target;
+
+    layer.setStyle({
+      weight: 5,
+      color: '#666',
+      dashArray: '',
+      fillOpacity: 0.7,
+    });
+
+    layer.bringToFront();
+    this.infoControl.update(layer.feature.properties); // Update info control with feature properties
+  }
+
+  resetHighlight(e: any) {
+    this.geojson.resetStyle(e.target);
+    this.infoControl.update(); // Reset info control
+  }
+
+  zoomToFeature(e: any) {
+    this.map.fitBounds(e.target.getBounds());
+  }
+
+  onEachFeature(feature: any, layer: any) {
+    layer.on({
+      mouseover: this.highlightFeature,
+      mouseout: this.resetHighlight,
+      click: this.zoomToFeature,
+    });
+  }
+
+  /** -------------- Custom control ------------------------------------------------ */
+  addCustomControl() {
+    this.infoControl = this.createInfoControl();
+    this.infoControl.addTo(this.map);
+    this.legendControl = this.createLegendControl();
+    this.legendControl.addTo(this.map);
+  }
+
+  createInfoControl() {
+    const info = L.control();
+
+    info.onAdd = function (map: any) {
+      this._div = L.DomUtil.create('div', 'info'); // Create a div with a class "info"
+      this.update();
+      return this._div;
+    };
+
+    // Method to update the control based on feature properties passed
+    info.update = function (props?: any) {
+      this._div.innerHTML =
+        '<h4>US Population Density</h4>' +
+        (props
+          ? '<b>' +
+            props.name +
+            '</b><br />' +
+            props.density +
+            ' people / mi<sup>2</sup>'
+          : 'Hover over a state');
+    };
+
+    return info;
+  }
+
+  createLegendControl() {
+    const legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = this.createLegendStyle;
+
+    return legend;
+  }
+
+  createLegendStyle(map: any) {
+    var div = L.DomUtil.create('div', 'info legend'),
+      grades = [0, 10, 20, 50, 100, 200, 500, 1000],
+      labels = [];
+
+    // loop through our density intervals and generate a label with a colored square for each interval
+    for (var i = 0; i < grades.length; i++) {
+      div.innerHTML +=
+        '<i style="background:' +
+        this.getColor(grades[i] + 1) +
+        '"></i> ' +
+        grades[i] +
+        (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+    }
+
+    return div;
+  }
+
+  /** Pane use to control z-Index of some group layer */
+  testPane() {
+    this.map.createPane('labels');
+    this.map.getPane('labels').style.zIndex = 650; /** set zIndex = 0 to test */
+    this.map.getPane('labels').style.pointerEvents = 'none';
+
+    var positron = L.tileLayer(
+      'https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png',
+      {
+        attribution: '©OpenStreetMap, ©CartoDB',
+      }
+    ).addTo(this.map);
+
+    var positronLabels = L.tileLayer(
+      'https://a.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png',
+      {
+        attribution: '©OpenStreetMap, ©CartoDB',
+        pane: 'labels',
+      }
+    ).addTo(this.map);
+
+    this.http.get('assets/eu-countries.json').subscribe((data: any) => {
+      let euCountries = L.geoJson(data, {
+        style: this.setStateStyle,
+        onEachFeature: this.onEachFeature,
+      }).addTo(this.map);
+
+      euCountries.eachLayer(function (layer: any) {
+        layer.bindPopup(layer.feature.properties.name);
+      });
+    });
+
+    // positronLabels.removeFrom(this.map);
+    // console.log(this.map.getPanes());
+    // console.log(this.map.getPane('labels'));
   }
 }
