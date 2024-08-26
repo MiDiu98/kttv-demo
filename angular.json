@@ -32,13 +32,15 @@
             "styles": [
               "src/assets/fontawesome-free-6.1.2-web/css/all.min.css",
               "node_modules/leaflet-measure/dist/leaflet-measure.css",
+              "node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
               "src/styles.scss"
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
               "node_modules/rangeslider.js/dist/rangeslider.min.js",
               "node_modules/leaflet.browser.print/dist/leaflet.browser.print.js",
-              "node_modules/leaflet-measure/dist/leaflet-measure.min.js"
+              "node_modules/leaflet-measure/dist/leaflet-measure.min.js",
+              "node_modules/leaflet-boundary-canvas/src/BoundaryCanvas.js"
             ]
           },
           "configurations": {

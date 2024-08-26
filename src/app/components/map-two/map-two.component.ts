@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import circleToPolygon from 'circle-to-polygon';
 import * as turf from '@turf/turf';
 import { HttpClient } from '@angular/common/http';
+import 'leaflet-boundary-canvas'; // Import plugin
 // import * as L from 'leaflet';
 // var L = require('leaflet');
 // require('leaflet-measure');
 
 declare var L: any;
 const GEOSERVER_DOMAIN = 'http://10.60.109.17:8080/gsv18';
+const GEOSERVER_WMS = GEOSERVER_DOMAIN + '/VTMAP/wms';
 
 @Component({
   selector: 'app-map-two',
@@ -43,9 +45,9 @@ export class MapTwoComponent implements OnInit {
     // this.renderMarker();
     // this.showMyLocation();
     // this.drawTangentTwoCircle();
-    this.renderChoropleth();
-    this.addCustomControl();
-    this.testPane();
+    // this.renderChoropleth();
+    // this.addCustomControl();
+    // this.testPane();
   }
 
   renderMap() {
@@ -63,21 +65,81 @@ export class MapTwoComponent implements OnInit {
       }
     );
 
+    const worldMap = L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
+      zIndex: 3,
+      LAYERS: 'ne:NE1_HR_LC_SR_W_DR',
+      TILED: true,
+    });
+
     this.map = L.map('map', {
       center: [16.0544, 108.2022],
-      layers: [worldBoundary],
+      crs: L.CRS.EPSG4326,
+      layers: [worldMap],
+      // layers: [worldBoundary],
+      // layers: [],
       zoom: 6,
-      maxZoom: 22,
+      // maxZoom: 18,
       minZoom: 1,
-      zoomControl: false,
+      zoomControl: true,
     });
 
     this.addMapControl();
     this.testGroupLayer();
+    this.loadCacheLayer();
+  }
+
+  loadCacheLayer() {
+    // Định nghĩa vùng bounds
+    var bounds = L.latLngBounds(
+      L.latLng(-15.25, 59.75), // Góc dưới bên trái
+      L.latLng(60.25, 155.25) // Góc trên bên phải
+    );
+    let rainCache = L.tileLayer(
+    // new L.TileLayer.BoundaryCanvas(
+      GEOSERVER_DOMAIN +
+        '/VTMAP/gwc/service/wmts?layer=VTMAP%3Atd2_rain&style=&tilematrixset=EPSG%3A4326&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fjpeg&TileMatrix=EPSG%3A4326%3A{z}&TileCol={x}&TileRow={y}&request=GetCapabilities',
+      {
+        attribution:
+          '&copy; <a href="http://your-organization-url">Your Organization</a> contributors',
+        // maxZoom: 18,
+        // errorTileUrl: '/assets/storm-eye.png', // Optional: URL for a placeholder tile when an error occurs
+        tileSize: 512, // Ensure this matches the tile size configured on your server
+        transparent: true,
+        opacity: 0.5,
+        zIndex: 1000,
+
+        continuousWorld: false,
+        detectRetina: true,
+        reuseTiles: true,
+        noWrap: true,
+        bounds: bounds,
+        zoomOffset: -1,
+      }
+    )
+    .addTo(this.map);
+
+    // L.TileLayer.BoundaryCanvas.createFromLayer(rainCache, {
+    //   boundary: bounds,
+    // }).addTo(this.map);
+
+    L.rectangle(bounds, { color: '#ff7800', weight: 1 }).addTo(this.map);
+    this.map.setMaxBounds(bounds);
+
+    L.marker([-15.25, 59.75], {
+      draggable: true,
+      title: 'This is hover text for marker',
+      opacity: 0.5,
+    }).addTo(this.map);
+    L.marker([60.25, 155.25], {
+      draggable: true,
+      title: 'This is hover text for marker',
+      opacity: 0.5,
+    }).addTo(this.map);
   }
 
   addMapControl() {
     L.control.scale().addTo(this.map);
+    // L.control.zoomControl().addTo(this.map);
     // this.map.zoomControl.setPosition('bottomright')
     L.control.browserPrint().addTo(this.map);
     L.control.measure().addTo(this.map);

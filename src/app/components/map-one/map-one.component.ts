@@ -100,7 +100,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
       // code: 'VTMAP:COVERAGEVIEW_WIND_SPEED',
       // code: 'xwnd',
       // code: '',
-      code: 'rain',
+      code: 'ND_zeta',
     },
     {
       name: 'Nhiệt độ',
@@ -185,8 +185,8 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     const bounds = L.latLngBounds(southWest, northEast);
     this.map = L.map('windy', {
       center: [16.0544, 108.2022],
-      layers: [this.baseLayer],
-      // layers: [],
+      // layers: [this.baseLayer],
+      layers: [],
       zoom: 4,
       maxZoom: 22,
       minZoom: 1,
@@ -198,8 +198,8 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
     this.updateLayers();
     this.updateViewTemperatureLayer();
-    this.loadHurricaneTrajectory();
-    this.loadLatLngGraticule();
+    // this.loadHurricaneTrajectory();
+    // this.loadLatLngGraticule();
 
     // Marker Hoàng sa, trường sa
     const HoangSaIcon = L.divIcon({
@@ -491,7 +491,7 @@ export class MapOneComponent implements OnInit, AfterViewInit {
           default:
             break;
         }
-        // contentValue = properties[layerCode];
+        contentValue = properties['water_level'];
       } else {
         console.log('Error');
         console.log(res.exceptions);
@@ -573,70 +573,48 @@ export class MapOneComponent implements OnInit, AfterViewInit {
     this.timeDisplay = `${dayDisplay} - ${hour}:00`;
   }
 
-  updateLayers() {
-    if (!this.map) return;
-    const layerCode = this.layers[this.layerMenuSelected].code;
-    const layerOptions: any = {
-      layers: layerCode,
-      time: this.layerTime,
-      format: 'image/png',
-      transparent: true,
-      opacity: 0.8,
-      version: '1.1.1',
-    };
-    if (this.nextCacheLayer === 'HOT') {
-      if (!this.layerHot) {
-        this.layerHot = L.tileLayer
-          .wms(GEOSERVER_WMS, layerOptions)
-          .addTo(this.map);
-      } else {
-        this.layerHot.off('load', this.bringBackLayerCold);
-        this.layerHot.once('load', this.bringBackLayerCold);
-        this.layerHot.setParams(layerOptions);
-      }
-      this.nextCacheLayer = 'COLD';
-    } else {
-      if (!this.layerCold) {
-        this.layerCold = L.tileLayer
-          .wms(GEOSERVER_WMS, layerOptions)
-          .addTo(this.map);
-        this.layerCold.once('load', this.bringBackLayerHot);
-      } else {
-        this.layerCold.off('load', this.bringBackLayerHot);
-        this.layerCold.once('load', this.bringBackLayerHot);
-        this.layerCold.setParams(layerOptions);
-      }
-
-      this.nextCacheLayer = 'HOT';
-    }
-    if (this.isMarkerInfoEnable) {
-      this.updateMarkerInfo(undefined);
-    }
-    this.loadPSContour();
-    if (!this.worldBoundary) {
-      this.loadCountryBourderLayer();
-    }
-  }
-
   // updateLayers() {
+  //   console.log('updateLayer');
   //   if (!this.map) return;
   //   const layerCode = this.layers[this.layerMenuSelected].code;
   //   const layerOptions: any = {
-  //     layers: layerCode,
-  //     time: this.layerTime,
+  //     // layers: layerCode,
+  //     // time: this.layerTime,
+  //     layers: 'ND_zeta',
+  //     time: '2017-09-16T06:00:00Z',
   //     format: 'image/png',
   //     transparent: true,
   //     opacity: 0.8,
   //     version: '1.1.1',
-  //     // DIM_LEV: ''
+  //     style: 'test_contour_fill'
   //   };
-  //   if (!this.layerColorFill) {
-  //     this.layerColorFill = L.tileLayer
-  //     // this.layerColorFill = L.nonTiledLayer
-  //       .wms(GEOSERVER_WMS, layerOptions)
-  //       .addTo(this.map);
+  //   if (this.nextCacheLayer === 'HOT') {
+  //     if (!this.layerHot) {
+  //       console.log('layer hot');
+
+  //       this.layerHot = L.tileLayer
+  //         .wms(GEOSERVER_WMS, layerOptions)
+  //         // .wms('http://10.60.109.17:8080/gsv18/VTMAP/gwc/demo/VTMAP:td2_rain?gridSet=EPSG:4326&format=image/jpeg')
+  //         .addTo(this.map);
+  //     } else {
+  //       this.layerHot.off('load', this.bringBackLayerCold);
+  //       this.layerHot.once('load', this.bringBackLayerCold);
+  //       this.layerHot.setParams(layerOptions);
+  //     }
+  //     this.nextCacheLayer = 'COLD';
   //   } else {
-  //     this.layerColorFill.setParams(layerOptions);
+  //     if (!this.layerCold) {
+  //       this.layerCold = L.tileLayer
+  //         .wms(GEOSERVER_WMS, layerOptions)
+  //         .addTo(this.map);
+  //       this.layerCold.once('load', this.bringBackLayerHot);
+  //     } else {
+  //       this.layerCold.off('load', this.bringBackLayerHot);
+  //       this.layerCold.once('load', this.bringBackLayerHot);
+  //       this.layerCold.setParams(layerOptions);
+  //     }
+
+  //     this.nextCacheLayer = 'HOT';
   //   }
   //   if (this.isMarkerInfoEnable) {
   //     this.updateMarkerInfo(undefined);
@@ -646,6 +624,38 @@ export class MapOneComponent implements OnInit, AfterViewInit {
   //     this.loadCountryBourderLayer();
   //   }
   // }
+
+  updateLayers() {
+    if (!this.map) return;
+    const layerCode = this.layers[this.layerMenuSelected].code;
+    const layerOptions: any = {
+      // layers: layerCode,
+      // time: this.layerTime,
+      layers: 'ND_zeta',
+      time: '2017-09-16T06:00:00Z',
+      // time: '2017-09-12T12:00:00Z',
+      format: 'image/png',
+      transparent: true,
+      opacity: 0.8,
+      version: '1.1.1',
+      // DIM_LEV: ''
+    };
+    if (!this.layerColorFill) {
+      // this.layerColorFill = L.tileLayer
+        this.layerColorFill = L.nonTiledLayer
+        .wms(GEOSERVER_WMS, layerOptions)
+        .addTo(this.map);
+    } else {
+      this.layerColorFill.setParams(layerOptions);
+    }
+    if (this.isMarkerInfoEnable) {
+      this.updateMarkerInfo(undefined);
+    }
+    this.loadPSContour();
+    if (!this.worldBoundary) {
+      this.loadCountryBourderLayer();
+    }
+  }
 
   bringBackLayerHot() {
     if (this.layerHot) {
@@ -688,7 +698,8 @@ export class MapOneComponent implements OnInit, AfterViewInit {
         WIDTH: 101,
         HEIGHT: 101,
         BBOX: bbox,
-        time: this.layerTime,
+        // time: this.layerTime,
+        time: '2017-09-16T06:00:00Z'
       },
     };
     return this.http
@@ -860,7 +871,6 @@ export class MapOneComponent implements OnInit, AfterViewInit {
 
       // Draw storm affected area if not the last feature
       if (i > 0) {
-        
         const preFeature = hurricaneTrajectory[i - 1];
         if (!preFeature) return;
         const { Latitude, Longitude, rvmax } = preFeature;
