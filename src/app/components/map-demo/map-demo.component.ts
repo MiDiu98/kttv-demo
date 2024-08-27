@@ -5,6 +5,15 @@ import { Observable, Subject, takeUntil } from 'rxjs';
 import circleToPolygon from 'circle-to-polygon';
 import * as turf from '@turf/turf';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  COLOR_TYPES,
+  MODEL,
+  pmslColors,
+  wind10mColors,
+  wind200Colors,
+  wind500Colors,
+  wind700Colors,
+} from './color.const';
 
 declare var Windy: any; // Declare Windy as a global variable
 declare var L: any;
@@ -20,8 +29,10 @@ interface AnalysisField {
 
 const CALENDAR_DISPLAY_FORMAT = 'DD/MM/YYYY';
 // const GEOSERVER_DOMAIN = 'http://geoserver.atviettelsolutions.com/gsv18';
-const GEOSERVER_DOMAIN = 'http://10.60.109.17:8080/gsv18';
-const GEOSERVER_WMS = GEOSERVER_DOMAIN + '/VTMAP/wms';
+const GEOSERVER_DOMAIN = 'http://localhost:8080/geoserver';
+const GEOSERVER_WMS = GEOSERVER_DOMAIN + '/ne/wms';
+
+// http://localhost:8080/geoserver/ne/wms?service=WMS&version=1.1.0&request=GetMap&layers=ne:gsm_h&bbox=59.75,-5.25,155.25,60.25&width=768&height=526&srs=EPSG:4326&styles=&format=application/openlayers
 
 @Component({
   selector: 'app-map-demo',
@@ -29,6 +40,7 @@ const GEOSERVER_WMS = GEOSERVER_DOMAIN + '/VTMAP/wms';
   styleUrls: ['./map-demo.component.scss'],
 })
 export class MapDemoComponent implements OnInit {
+  COLOR_TYPES = COLOR_TYPES;
   map: any;
   baseLayer: any;
   analysisData: AnalysisField[] = [];
@@ -43,15 +55,18 @@ export class MapDemoComponent implements OnInit {
   SwanGSM_FormGroup!: FormGroup;
   // tileLayer: any;
   layerCache: Map<string, any> = new Map();
+  legendList: any[] = [];
+  currentLegend: any = {};
 
   constructor(private fb: FormBuilder) {
     this.initData();
+    this.renderLegend();
   }
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    this.initMap();
+    // this.initMap();
   }
 
   initMap() {
@@ -149,47 +164,153 @@ export class MapDemoComponent implements OnInit {
       '228',
       '234',
       '240',
-      '264'
+      '264',
     ];
 
-    const SuWAT_STEPS = ['000', '003', '006', '009', '012', '015', '018', '021', '024', '027', '030',
-      '033', '036', '039', '042', '045', '048', '051', '054', '057', '060',
-      '063', '066', '069', '072', '075', '078', '081', '084', '087', '090'];
+    const SuWAT_STEPS = [
+      '000',
+      '003',
+      '006',
+      '009',
+      '012',
+      '015',
+      '018',
+      '021',
+      '024',
+      '027',
+      '030',
+      '033',
+      '036',
+      '039',
+      '042',
+      '045',
+      '048',
+      '051',
+      '054',
+      '057',
+      '060',
+      '063',
+      '066',
+      '069',
+      '072',
+      '075',
+      '078',
+      '081',
+      '084',
+      '087',
+      '090',
+    ];
 
-    const SwanGSM_STEPS = ['000', '003', '006', '009', '012', '015', '018', '021', '024', '027', '030',
-      '033', '036', '039', '042', '045', '048', '051', '054', '057', '060',
-      '063', '066', '069', '072', '075', '078', '081', '084', '087', '090',
-      '093', '096', '099', '102', '105', '108', '111', '114', '117', '120',
-      '123', '126', '129', '132', '135', '138', '141', '144', '147', '150',
-      '153', '156', '159', '162', '165', '168', '171', '174', '177', '180',
-      '183', '186', '189', '192', '195', '198', '201', '204', '207', '210',
-      '213', '216', '219', '222', '225', '228', '231', '234', '237', '240',
-      '243', '246'];
+    const SwanGSM_STEPS = [
+      '000',
+      '003',
+      '006',
+      '009',
+      '012',
+      '015',
+      '018',
+      '021',
+      '024',
+      '027',
+      '030',
+      '033',
+      '036',
+      '039',
+      '042',
+      '045',
+      '048',
+      '051',
+      '054',
+      '057',
+      '060',
+      '063',
+      '066',
+      '069',
+      '072',
+      '075',
+      '078',
+      '081',
+      '084',
+      '087',
+      '090',
+      '093',
+      '096',
+      '099',
+      '102',
+      '105',
+      '108',
+      '111',
+      '114',
+      '117',
+      '120',
+      '123',
+      '126',
+      '129',
+      '132',
+      '135',
+      '138',
+      '141',
+      '144',
+      '147',
+      '150',
+      '153',
+      '156',
+      '159',
+      '162',
+      '165',
+      '168',
+      '171',
+      '174',
+      '177',
+      '180',
+      '183',
+      '186',
+      '189',
+      '192',
+      '195',
+      '198',
+      '201',
+      '204',
+      '207',
+      '210',
+      '213',
+      '216',
+      '219',
+      '222',
+      '225',
+      '228',
+      '231',
+      '234',
+      '237',
+      '240',
+      '243',
+      '246',
+    ];
 
     this.analysisData = [
       {
-        code: 'mhtd_w',
+        code: MODEL.GSM.w,
         name: 'Gió',
         startTime: '2024-07-21T12:00:00Z',
-        pressureLevels: ['Bề mặt', '200', '300', '500', '700'],
+        pressureLevels: ['Bề mặt', '200', '300', '500', '700', '850'],
         steps: GSM_STEPS,
       },
       {
-        code: 'mhtd_w10m',
+        code: MODEL.GSM.w10,
         name: 'Gió bề mặt',
         startTime: '2024-07-21T12:00:00Z',
         pressureLevels: ['Bề mặt'],
         steps: GSM_STEPS,
       },
+      // {
+      //   code: 'mhtd_rain',
+      //   name: 'Mưa',
+      //   startTime: '2024-07-21T12:00:00Z',
+      //   pressureLevels: ['Bề mặt'],
+      //   steps: GSM_STEPS,
+      // },
       {
-        code: 'mhtd_rain',
-        name: 'Mưa',
-        startTime: '2024-07-21T12:00:00Z',
-        pressureLevels: ['Bề mặt'],
-        steps: GSM_STEPS,
-      },
-      {
-        code: 'mhtd_pmsl',
+        code: MODEL.GSM.pmsl,
         name: 'Khí áp',
         startTime: '2024-07-21T12:00:00Z',
         pressureLevels: ['Bề mặt'],
@@ -201,7 +322,7 @@ export class MapDemoComponent implements OnInit {
     /** SuWAT */
     this.SuWatAnalysisData = [
       {
-        code: 'zeta',
+        code: MODEL.SUWAT.zeta,
         name: 'Nước dâng',
         startTime: '2017-09-12T12:00:00Z',
         pressureLevels: ['Bề mặt'],
@@ -213,25 +334,25 @@ export class MapDemoComponent implements OnInit {
     /** SwanGSM */
     this.SwanGSM_AnalysisData = [
       {
-        code: 'hs',
+        code: MODEL.SWAN_GSM.hs,
         name: 'Độ cao sóng có nghĩa',
         startTime: '2024-06-26T12:00:00Z',
         pressureLevels: ['Bề mặt'],
-        steps: SwanGSM_STEPS
+        steps: SwanGSM_STEPS,
       },
       {
-        code: 'theta0',
+        code: MODEL.SWAN_GSM.theta0,
         name: 'Hướng sóng có nghĩa',
         startTime: '2024-06-26T12:00:00Z',
         pressureLevels: ['Bề mặt'],
-        steps: SwanGSM_STEPS
+        steps: SwanGSM_STEPS,
       },
       {
-        code: 'hswe',
+        code: MODEL.SWAN_GSM.hswe,
         name: 'Độ cao sóng lửng',
         startTime: '2024-06-26T12:00:00Z',
         pressureLevels: ['Bề mặt'],
-        steps: SwanGSM_STEPS
+        steps: SwanGSM_STEPS,
       },
     ];
     this.SwanGSM_AnalysisField = this.SwanGSM_AnalysisData[0];
@@ -297,6 +418,8 @@ export class MapDemoComponent implements OnInit {
     // 21/7 12h - 1/8 12h
     // swan-gsm : 26062024 12h 06072024 21h
     // suwat 12092017 12h 16092017 6h
+    console.log('load data');
+
     this.updateGSMLayers();
     this.updateSuWatLayers();
     this.updateSwanGSMLayers();
@@ -306,13 +429,14 @@ export class MapDemoComponent implements OnInit {
     // if (!this.map || !this.analysisField) return;
     let formValue = this.formGroup.value;
     let layerOptions: any = {
-      layers: `VTMAP:${formValue.code}`,
+      layers: `${formValue.code}`,
       time: formValue.startTime,
       format: 'image/png',
       transparent: true,
       opacity: 0.8,
       version: '1.1.1',
       interpolations: 'bicubic',
+      styles: `${formValue.code}`,
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -327,26 +451,31 @@ export class MapDemoComponent implements OnInit {
 
     /** Hiện mảng màu */
     this.loadLayer(formValue.isFill, layerOptions);
+    this.getCurrentLegend(formValue.isFill, layerOptions);
 
     /** Hiện mảng contour */
     this.loadLayer(formValue.isWind10mContour, layerOptions, {
-      layers: `VTMAP:mhtd_w10m`,
-      styles: 'wind_10m_1',
+      layers: `${MODEL.GSM.w10}`,
+      styles: `${formValue.code}_direction`,
     });
+    // this.loadLayer(formValue.isWind10mContour, layerOptions, {
+    //   layers: `${MODEL.GSM.w10}`,
+    //   styles: `${formValue.code}_contour`
+    // });
   }
 
   updateSuWatLayers() {
     // if (!this.map || !this.SuWatAnalysisField) return;
     let formValue = this.SuWatFormGroup.value;
-    console.log('updateSuWatLayers');
     let layerOptions: any = {
-      layers: `VTMAP:${formValue.code}`,
+      layers: `${formValue.code}`,
       time: formValue.startTime,
       format: 'image/png',
       transparent: true,
       opacity: 0.8,
       version: '1.1.1',
       interpolations: 'bilinear',
+      styles: `${formValue.code}`,
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -366,16 +495,15 @@ export class MapDemoComponent implements OnInit {
   updateSwanGSMLayers() {
     // if (!this.map || !this.SwanGSM_AnalysisField) return;
     let formValue = this.SwanGSM_FormGroup.value;
-    console.log('SwanGSM_FormGroup');
-
     let layerOptions: any = {
-      layers: `VTMAP:${formValue.code}`,
+      layers: `${formValue.code}`,
       time: formValue.startTime,
       format: 'image/png',
       transparent: true,
       opacity: 0.8,
       version: '1.1.1',
       interpolations: 'bilinear',
+      styles: `${formValue.code}`,
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -397,7 +525,7 @@ export class MapDemoComponent implements OnInit {
       ...layerOptions,
       ...customOptions,
     };
-    console.log(layerOptions);
+    // console.log(layerOptions);
 
     // if (isShow) {
     //   this.clearLayerCache(layerOptions.layers);
@@ -415,5 +543,83 @@ export class MapDemoComponent implements OnInit {
       this.map.removeLayer(this.layerCache.get(layerCode));
       this.layerCache.delete(layerCode);
     }
+  }
+
+  /** Render color */
+  renderLegend() {
+    this.legendList.push(...[
+      {
+        code: MODEL.GSM.pmsl,
+        type: this.COLOR_TYPES.COLOR,
+        data: pmslColors,
+      },
+      {
+        code: MODEL.GSM.w10,
+        type: this.COLOR_TYPES.GRADIENT,
+        data: wind10mColors,
+      },
+      {
+        code: MODEL.GSM.w,
+        lev: '200',
+        type: this.COLOR_TYPES.GRADIENT,
+        data: wind200Colors,
+      },
+      {
+        code: MODEL.GSM.w,
+        lev: '300',
+        type: this.COLOR_TYPES.GRADIENT,
+        data: wind200Colors,
+      },
+      {
+        code: MODEL.GSM.w,
+        lev: '500',
+        type: this.COLOR_TYPES.GRADIENT,
+        data: wind500Colors,
+      },
+      {
+        code: MODEL.GSM.w,
+        lev: '700',
+        type: this.COLOR_TYPES.GRADIENT,
+        data: wind700Colors,
+      },
+      {
+        code: MODEL.GSM.w,
+        lev: '850',
+        type: this.COLOR_TYPES.GRADIENT,
+        data: wind700Colors,
+      },
+    ]);
+  }
+
+  getCurrentLegend(isShow: boolean, layerOptions: any) {
+    console.log('getCurrentLegend', layerOptions);
+
+    if (isShow) {
+      let legend = undefined;
+      this.currentLegend = undefined;
+
+      for (let i = 0; i < this.legendList.length; i++) {
+        let item = this.legendList[i];
+        console.log(+item.lev === +layerOptions.DIM_LEV);
+        if (
+          item.code === layerOptions.layers &&
+          layerOptions.layers === MODEL.GSM.w &&
+          +item.lev === +layerOptions.DIM_LEV
+        ) {
+          legend = item;
+          break;
+        } else if (item.code === layerOptions.layers) {
+          legend = item;
+        }
+      };
+      console.log(legend);
+
+      this.currentLegend = legend;
+    } else {
+      this.currentLegend = undefined;
+    }
+
+    console.log(this.legendList);
+    console.log(this.currentLegend);
   }
 }

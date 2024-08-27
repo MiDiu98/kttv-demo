@@ -1,6 +1,16 @@
 <div class="layout">
   <div class="map-container">
     <!-- <div id="windy"></div> -->
+     <ng-container *ngIf="currentLegend">
+       <div *ngIf="currentLegend.type === this.COLOR_TYPES.COLOR">
+         <label for="">PMSL</label>
+         <nz-tag class="m-0 text-black" *ngFor="let color of currentLegend.data" [nzColor]="color.color">{{color.key}}</nz-tag>
+       </div>
+       <div *ngIf="currentLegend.type === this.COLOR_TYPES.GRADIENT">
+         <label for="" class="me-3">Wind Legend Gradient</label>
+         <span class="gradient-box" *ngFor="let color of currentLegend.data" [ngStyle]="{'background': 'linear-gradient(to right, ' + color.fromColor + ', ' + color.toColor + ')'}">{{color.from}}</span>
+       </div>
+     </ng-container>
   </div>
   <div class="right-form">
     <div class="model-wrapper">
