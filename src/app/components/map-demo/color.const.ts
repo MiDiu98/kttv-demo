@@ -7,7 +7,7 @@ export const MODEL = {
   GSM: {
     w: 'ne:gsm_w',
     w10: 'ne:gsm_w10',
-    pmsl: 'ne:gsm_psml',
+    pmsl: 'ne:gsm_pmsl',
     h: 'ne:gsm_h'
   },
   SWAN_GSM: {

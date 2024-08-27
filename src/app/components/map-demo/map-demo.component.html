@@ -89,6 +89,9 @@
                 >Hướng gió</label
               >
             </div>
+            <div nz-col class="gutter-row" [nzSpan]="24">
+              <label nz-checkbox formControlName="isPressureContour">Đường đẳng trị khí áp</label>
+            </div>
           </div>
         </form>
       </div>
@@ -159,8 +162,11 @@
                 </nz-form-control>
               </nz-form-item>
             </div>
-            <div nz-col class="gutter-row" [nzSpan]="16">
+            <div nz-col class="gutter-row" [nzSpan]="12">
               <label nz-checkbox formControlName="isFill">Mảng màu</label>
+            </div>
+            <div nz-col class="gutter-row" [nzSpan]="24">
+              <label nz-checkbox formControlName="isZetaContour">Đường đẳng trị nước dâng</label>
             </div>
           </div>
         </form>
@@ -233,8 +239,14 @@
               </nz-form-item>
             </div>
           </div>
-          <div nz-col class="gutter-row" [nzSpan]="16">
+          <div nz-col class="gutter-row" [nzSpan]="24">
             <label nz-checkbox formControlName="isFill">Mảng màu</label>
+          </div>
+          <div nz-col class="gutter-row" [nzSpan]="24">
+            <label nz-checkbox formControlName="isFill">Đường đẳng trị độ cao sóng có nghĩa</label>
+          </div>
+          <div nz-col class="gutter-row" [nzSpan]="24">
+            <label nz-checkbox formControlName="isFill">Đường đẳng trị độ cao sóng lửng</label>
           </div>
         </form>
       </div>

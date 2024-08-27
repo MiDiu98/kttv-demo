@@ -373,7 +373,7 @@ export class MapDemoComponent implements OnInit {
       // isWindContour: [false],
       isWind10mContour: [false],
       // isRainContour: [false],
-      // isPressureContour: [false],
+      isPressureContour: [false],
     });
     this.formGroup.controls['code'].valueChanges.subscribe((code) => {
       this.analysisField = this.analysisData.find((a) => a.code === code);
@@ -389,6 +389,7 @@ export class MapDemoComponent implements OnInit {
       ],
       step: [this.SuWatAnalysisField?.steps[0], [Validators.required]],
       isFill: [false],
+      isZetaContour: [false],
     });
     this.SuWatFormGroup.controls['code'].valueChanges.subscribe((code) => {
       this.SuWatAnalysisField = this.SuWatAnalysisData.find(
@@ -406,6 +407,8 @@ export class MapDemoComponent implements OnInit {
       ],
       step: [this.SwanGSM_AnalysisField?.steps[0], [Validators.required]],
       isFill: [false],
+      isHsContour: [false],
+      isHsweContour: [false],
     });
     this.SwanGSM_FormGroup.controls['code'].valueChanges.subscribe((code) => {
       this.SwanGSM_AnalysisField = this.SwanGSM_AnalysisData.find(
@@ -442,7 +445,7 @@ export class MapDemoComponent implements OnInit {
       version: '1.1.1',
       interpolations: 'bicubic',
       // styles: `${formValue.code}`,
-      styles: styleCode
+      styles: styleCode,
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -464,6 +467,10 @@ export class MapDemoComponent implements OnInit {
       layers: `${MODEL.GSM.w10}`,
       styles: `${styleCode}_direction`,
     });
+    this.loadLayer(formValue.isPressureContour, layerOptions, {
+      layers: `${MODEL.GSM.pmsl}`,
+      styles: `${styleCode}_contour`,
+    });
     // this.loadLayer(formValue.isWind10mContour, layerOptions, {
     //   layers: `${MODEL.GSM.w10}`,
     //   styles: `${formValue.code}_contour`
@@ -484,7 +491,7 @@ export class MapDemoComponent implements OnInit {
       version: '1.1.1',
       interpolations: 'bilinear',
       // styles: `${formValue.code}`,
-      styles: styleCode
+      styles: styleCode,
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -499,6 +506,12 @@ export class MapDemoComponent implements OnInit {
 
     /** Hiện mảng màu */
     this.loadLayer(formValue.isFill, layerOptions);
+
+    /** Hiện mảng contour */
+    this.loadLayer(formValue.isZetaContour, layerOptions, {
+      layers: `${MODEL.SUWAT.zeta}`,
+      styles: `${styleCode}_contour`,
+    });
   }
 
   updateSwanGSMLayers() {
@@ -514,7 +527,7 @@ export class MapDemoComponent implements OnInit {
       version: '1.1.1',
       interpolations: 'bilinear',
       // styles: `${formValue.code}`,
-      styles: styleCode
+      styles: styleCode,
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -529,6 +542,15 @@ export class MapDemoComponent implements OnInit {
 
     /** Hiện mảng màu */
     this.loadLayer(formValue.isFill, layerOptions);
+    /** Hiện mảng contour */
+    this.loadLayer(formValue.isHsContour, layerOptions, {
+      layers: `${MODEL.SWAN_GSM.hs}`,
+      styles: `${styleCode}_contour`,
+    });
+    this.loadLayer(formValue.isHsweContour, layerOptions, {
+      layers: `${MODEL.SWAN_GSM.hswe}`,
+      styles: `${styleCode}_contour`,
+    });
   }
 
   loadLayer(isShow: boolean, layerOptions: any, customOptions?: any) {
@@ -558,48 +580,50 @@ export class MapDemoComponent implements OnInit {
 
   /** Render color */
   renderLegend() {
-    this.legendList.push(...[
-      {
-        code: MODEL.GSM.pmsl,
-        type: this.COLOR_TYPES.COLOR,
-        data: pmslColors,
-      },
-      {
-        code: MODEL.GSM.w10,
-        type: this.COLOR_TYPES.GRADIENT,
-        data: wind10mColors,
-      },
-      {
-        code: MODEL.GSM.w,
-        lev: '200',
-        type: this.COLOR_TYPES.GRADIENT,
-        data: wind200Colors,
-      },
-      {
-        code: MODEL.GSM.w,
-        lev: '300',
-        type: this.COLOR_TYPES.GRADIENT,
-        data: wind200Colors,
-      },
-      {
-        code: MODEL.GSM.w,
-        lev: '500',
-        type: this.COLOR_TYPES.GRADIENT,
-        data: wind500Colors,
-      },
-      {
-        code: MODEL.GSM.w,
-        lev: '700',
-        type: this.COLOR_TYPES.GRADIENT,
-        data: wind700Colors,
-      },
-      {
-        code: MODEL.GSM.w,
-        lev: '850',
-        type: this.COLOR_TYPES.GRADIENT,
-        data: wind700Colors,
-      },
-    ]);
+    this.legendList.push(
+      ...[
+        {
+          code: MODEL.GSM.pmsl,
+          type: this.COLOR_TYPES.COLOR,
+          data: pmslColors,
+        },
+        {
+          code: MODEL.GSM.w10,
+          type: this.COLOR_TYPES.GRADIENT,
+          data: wind10mColors,
+        },
+        {
+          code: MODEL.GSM.w,
+          lev: '200',
+          type: this.COLOR_TYPES.GRADIENT,
+          data: wind200Colors,
+        },
+        {
+          code: MODEL.GSM.w,
+          lev: '300',
+          type: this.COLOR_TYPES.GRADIENT,
+          data: wind200Colors,
+        },
+        {
+          code: MODEL.GSM.w,
+          lev: '500',
+          type: this.COLOR_TYPES.GRADIENT,
+          data: wind500Colors,
+        },
+        {
+          code: MODEL.GSM.w,
+          lev: '700',
+          type: this.COLOR_TYPES.GRADIENT,
+          data: wind700Colors,
+        },
+        {
+          code: MODEL.GSM.w,
+          lev: '850',
+          type: this.COLOR_TYPES.GRADIENT,
+          data: wind700Colors,
+        },
+      ]
+    );
   }
 
   getCurrentLegend(isShow: boolean, layerOptions: any) {
@@ -619,7 +643,7 @@ export class MapDemoComponent implements OnInit {
         } else if (item.code === layerOptions.layers) {
           legend = item;
         }
-      };
+      }
       this.currentLegend = legend;
     } else {
       this.currentLegend = undefined;
