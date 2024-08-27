@@ -1,65 +1,244 @@
 <div class="layout">
-    <div class="map-container">
-        <div id="windy"></div>
-    </div>
-    <div class="right-form">
-        <div class="model-wrapper">
-            <h4 class="text-3xl font-bold">
-                GSM 0.50x0.50
-            </h4>
-            <div class="body" *ngIf="analysisField">
-                <form nz-form [formGroup]="formGroup">
-                    <div nz-row [nzGutter]="8">
-                        <div nz-col class="gutter-row" [nzSpan]="16">
-                            <nz-form-item class="d-block">
-                                <nz-form-label>Thời điểm dự báo</nz-form-label>                        
-                                <nz-form-control nzErrorTip="Chọn thời điểm dự báo">
-                                    <nz-select name="select-error" formControlName="startTime">
-                                        <nz-option [nzValue]="analysisField.startTime" [nzLabel]="analysisField.startTime"></nz-option>
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-                        <div nz-col class="gutter-row" [nzSpan]="8">
-                            <nz-form-item class="d-block">
-                                <nz-form-label>Mực khí áp</nz-form-label>
-                                <nz-form-control nzErrorTip="Chọn mực khí áp">
-                                    <nz-select name="select-error" formControlName="pressureLevel">
-                                        <nz-option *ngFor="let level of analysisField.pressureLevels" [nzValue]="level" [nzLabel]="level"></nz-option>
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-                    </div>
-                    <div nz-row [nzGutter]="8">
-                        <div nz-col class="gutter-row" [nzSpan]="16">
-                            <nz-form-item class="d-block">
-                                <nz-form-label>Trường phân tích</nz-form-label>
-                                <nz-form-control nzErrorTip="Trường phân tích">
-                                    <nz-select name="select-error" formControlName="code">
-                                        <nz-option *ngFor="let field of analysisData" [nzValue]="field.code" [nzLabel]="field.name"></nz-option>
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-                        <div nz-col class="gutter-row" [nzSpan]="8">
-                            <nz-form-item class="d-block">
-                                <nz-form-label>Bước dự báo</nz-form-label>
-                                <nz-form-control nzErrorTip="Bước dự báo">
-                                    <nz-select name="select-error" formControlName="step">
-                                        <nz-option *ngFor="let step of analysisField.steps" [nzValue]="step" [nzLabel]="step"></nz-option>
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-                        <!-- <label nz-checkbox formControlName="isWindContour">Đẳng trị gió</label> -->
-                        <label nz-checkbox formControlName="isWind10mContour">Hướng gió</label>
-                        <!-- <label nz-checkbox formControlName="isRainContour">Đẳng trị mưa 6h</label>
-                        <label nz-checkbox formControlName="isPressureContour">Đường đẳng trị khí áp</label> -->
-                    </div>
-                    <button nz-button nzType="default" nzBlock (click)="loadData()">Load data</button>
-                </form>
+  <div class="map-container">
+    <!-- <div id="windy"></div> -->
+  </div>
+  <div class="right-form">
+    <div class="model-wrapper">
+      <h4 class="text-3xl font-bold">GSM 0.50x0.50</h4>
+      <div class="body" *ngIf="analysisField">
+        <form nz-form [formGroup]="formGroup">
+          <div nz-row [nzGutter]="8">
+            <div nz-col class="gutter-row" [nzSpan]="16">
+              <nz-form-item class="d-block">
+                <nz-form-label>Thời điểm dự báo</nz-form-label>
+                <nz-form-control nzErrorTip="Chọn thời điểm dự báo">
+                  <nz-select name="select-error" formControlName="startTime">
+                    <nz-option
+                      [nzValue]="analysisField.startTime"
+                      [nzLabel]="analysisField.startTime"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
             </div>
-        </div>
+            <div nz-col class="gutter-row" [nzSpan]="8">
+              <nz-form-item class="d-block">
+                <nz-form-label>Mực khí áp</nz-form-label>
+                <nz-form-control nzErrorTip="Chọn mực khí áp">
+                  <nz-select
+                    name="select-error"
+                    formControlName="pressureLevel"
+                  >
+                    <nz-option
+                      *ngFor="let level of analysisField.pressureLevels"
+                      [nzValue]="level"
+                      [nzLabel]="level"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <div nz-row [nzGutter]="8">
+            <div nz-col class="gutter-row" [nzSpan]="16">
+              <nz-form-item class="d-block">
+                <nz-form-label>Trường phân tích</nz-form-label>
+                <nz-form-control nzErrorTip="Trường phân tích">
+                  <nz-select name="select-error" formControlName="code">
+                    <nz-option
+                      *ngFor="let field of analysisData"
+                      [nzValue]="field.code"
+                      [nzLabel]="field.name"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col class="gutter-row" [nzSpan]="8">
+              <nz-form-item class="d-block">
+                <nz-form-label>Bước dự báo</nz-form-label>
+                <nz-form-control nzErrorTip="Bước dự báo">
+                  <nz-select name="select-error" formControlName="step">
+                    <nz-option
+                      *ngFor="let step of analysisField.steps"
+                      [nzValue]="step"
+                      [nzLabel]="step"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col class="gutter-row" [nzSpan]="12">
+              <!-- <label nz-checkbox formControlName="isWindContour">Đẳng trị gió</label> -->
+              <label nz-checkbox formControlName="isFill">Mảng màu</label>
+              <!-- <label nz-checkbox formControlName="isRainContour">Đẳng trị mưa 6h</label>
+                            <label nz-checkbox formControlName="isPressureContour">Đường đẳng trị khí áp</label> -->
+            </div>
+            <div nz-col class="gutter-row" [nzSpan]="12">
+              <label nz-checkbox formControlName="isWind10mContour"
+                >Hướng gió</label
+              >
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
+    <hr class="my-2" />
+    <div class="model-wrapper">
+      <h4 class="text-3xl font-bold">SuWat</h4>
+      <div class="body" *ngIf="SuWatAnalysisField">
+        <form nz-form [formGroup]="SuWatFormGroup">
+          <div nz-row [nzGutter]="8">
+            <div nz-col class="gutter-row" [nzSpan]="16">
+              <nz-form-item class="d-block">
+                <nz-form-label>Thời điểm dự báo</nz-form-label>
+                <nz-form-control nzErrorTip="Chọn thời điểm dự báo">
+                  <nz-select name="select-error" formControlName="startTime">
+                    <nz-option
+                      [nzValue]="SuWatAnalysisField.startTime"
+                      [nzLabel]="SuWatAnalysisField.startTime"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col class="gutter-row" [nzSpan]="8">
+              <nz-form-item class="d-block">
+                <nz-form-label>Mực khí áp</nz-form-label>
+                <nz-form-control nzErrorTip="Chọn mực khí áp">
+                  <nz-select
+                    name="select-error"
+                    formControlName="pressureLevel"
+                  >
+                    <nz-option
+                      *ngFor="let level of SuWatAnalysisField.pressureLevels"
+                      [nzValue]="level"
+                      [nzLabel]="level"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <div nz-row [nzGutter]="8">
+            <div nz-col class="gutter-row" [nzSpan]="16">
+              <nz-form-item class="d-block">
+                <nz-form-label>Trường phân tích</nz-form-label>
+                <nz-form-control nzErrorTip="Trường phân tích">
+                  <nz-select name="select-error" formControlName="code">
+                    <nz-option
+                      *ngFor="let field of SuWatAnalysisData"
+                      [nzValue]="field.code"
+                      [nzLabel]="field.name"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col class="gutter-row" [nzSpan]="8">
+              <nz-form-item class="d-block">
+                <nz-form-label>Bước dự báo</nz-form-label>
+                <nz-form-control nzErrorTip="Bước dự báo">
+                  <nz-select name="select-error" formControlName="step">
+                    <nz-option
+                      *ngFor="let step of SuWatAnalysisField.steps"
+                      [nzValue]="step"
+                      [nzLabel]="step"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col class="gutter-row" [nzSpan]="16">
+              <label nz-checkbox formControlName="isFill">Mảng màu</label>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <hr class="my-2" />
+    <div class="model-wrapper">
+      <h4 class="text-3xl font-bold">SwanGSM</h4>
+      <div class="body" *ngIf="SwanGSM_AnalysisField">
+        <form nz-form [formGroup]="SwanGSM_FormGroup">
+          <div nz-row [nzGutter]="8">
+            <div nz-col class="gutter-row" [nzSpan]="16">
+              <nz-form-item class="d-block">
+                <nz-form-label>Thời điểm dự báo</nz-form-label>
+                <nz-form-control nzErrorTip="Chọn thời điểm dự báo">
+                  <nz-select name="select-error" formControlName="startTime">
+                    <nz-option
+                      [nzValue]="SwanGSM_AnalysisField.startTime"
+                      [nzLabel]="SwanGSM_AnalysisField.startTime"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col class="gutter-row" [nzSpan]="8">
+              <nz-form-item class="d-block">
+                <nz-form-label>Mực khí áp</nz-form-label>
+                <nz-form-control nzErrorTip="Chọn mực khí áp">
+                  <nz-select
+                    name="select-error"
+                    formControlName="pressureLevel"
+                  >
+                    <nz-option
+                      *ngFor="let level of SwanGSM_AnalysisField.pressureLevels"
+                      [nzValue]="level"
+                      [nzLabel]="level"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <div nz-row [nzGutter]="8">
+            <div nz-col class="gutter-row" [nzSpan]="16">
+              <nz-form-item class="d-block">
+                <nz-form-label>Trường phân tích</nz-form-label>
+                <nz-form-control nzErrorTip="Trường phân tích">
+                  <nz-select name="select-error" formControlName="code">
+                    <nz-option
+                      *ngFor="let field of SwanGSM_AnalysisData"
+                      [nzValue]="field.code"
+                      [nzLabel]="field.name"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col class="gutter-row" [nzSpan]="8">
+              <nz-form-item class="d-block">
+                <nz-form-label>Bước dự báo</nz-form-label>
+                <nz-form-control nzErrorTip="Bước dự báo">
+                  <nz-select name="select-error" formControlName="step">
+                    <nz-option
+                      *ngFor="let step of SwanGSM_AnalysisField.steps"
+                      [nzValue]="step"
+                      [nzLabel]="step"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <div nz-col class="gutter-row" [nzSpan]="16">
+            <label nz-checkbox formControlName="isFill">Mảng màu</label>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <button
+      class="mt-3"
+      nz-button
+      nzType="primary"
+      nzGhost
+      nzBlock
+      (click)="loadData()"
+    >
+      Load data
+    </button>
+  </div>
 </div>

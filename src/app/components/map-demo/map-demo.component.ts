@@ -33,9 +33,15 @@ export class MapDemoComponent implements OnInit {
   baseLayer: any;
   analysisData: AnalysisField[] = [];
   analysisField?: AnalysisField;
+  SuWatAnalysisData: AnalysisField[] = [];
+  SuWatAnalysisField?: AnalysisField;
+  SwanGSM_AnalysisData: AnalysisField[] = [];
+  SwanGSM_AnalysisField?: AnalysisField;
 
   formGroup!: FormGroup;
-  tileLayer: any;
+  SuWatFormGroup!: FormGroup;
+  SwanGSM_FormGroup!: FormGroup;
+  // tileLayer: any;
   layerCache: Map<string, any> = new Map();
 
   constructor(private fb: FormBuilder) {
@@ -45,19 +51,10 @@ export class MapDemoComponent implements OnInit {
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    const worldBoundary = L.tileLayer(
-      GEOSERVER_DOMAIN +
-        '/gwc/service/wmts?layer=VTMAP:kttv_base&style=&tilematrixset=EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A900913%3A{z}&TileCol={x}&TileRow={y}',
-      {
-        attribution:
-          'Map tiles by <a target="_top" rel="noopener" href="https://map.viettel.vn">Viettelmaps</a>',
-        id: 'vt_trans',
-        tileSize: 256,
-        zoomOffset: 0,
-        accessToken: '6ht5fdbc-1996-4f54-87gf-5664f304f3d2',
-        zIndex: 3,
-      }
-    );
+    this.initMap();
+  }
+
+  initMap() {
     const worldMap = L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
       {
@@ -73,7 +70,7 @@ export class MapDemoComponent implements OnInit {
     const bounds = L.latLngBounds(southWest, northEast);
     this.map = L.map('windy', {
       center: [16.0544, 108.2022],
-      layers: [worldMap, worldBoundary],
+      layers: [worldMap],
       zoom: 4,
       maxZoom: 22,
       minZoom: 1,
@@ -81,85 +78,164 @@ export class MapDemoComponent implements OnInit {
       // fitBounds: bounds,
       // maxBounds: bounds,
     });
-    this.loadData();
+    // this.loadData();
+    // this.loadWorldBoundary();
+  }
+
+  /** Pane use to control z-Index of some group layer */
+  loadWorldBoundary() {
+    this.map.createPane('worldBoundary');
+    this.map.getPane(
+      'worldBoundary'
+    ).style.zIndex = 650; /** set zIndex = 0 to test */
+    this.map.getPane('worldBoundary').style.pointerEvents = 'none';
+
+    const worldBoundary = L.tileLayer(
+      GEOSERVER_DOMAIN +
+        '/gwc/service/wmts?layer=VTMAP:kttv_base&style=&tilematrixset=EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A900913%3A{z}&TileCol={x}&TileRow={y}',
+      {
+        attribution:
+          'Map tiles by <a target="_top" rel="noopener" href="https://map.viettel.vn">Viettelmaps</a>',
+        id: 'vt_trans',
+        tileSize: 256,
+        zoomOffset: 0,
+        accessToken: '6ht5fdbc-1996-4f54-87gf-5664f304f3d2',
+        zIndex: 10000,
+        pane: 'worldBoundary',
+      }
+    ).addTo(this.map);
   }
 
   initData() {
+    const GSM_STEPS = [
+      '000',
+      '006',
+      '012',
+      '018',
+      '024',
+      '030',
+      '036',
+      '042',
+      '048',
+      '054',
+      '060',
+      '066',
+      '072',
+      '078',
+      '084',
+      '090',
+      '096',
+      '102',
+      '108',
+      '114',
+      '120',
+      '126',
+      '132',
+      '138',
+      '144',
+      '150',
+      '156',
+      '162',
+      '168',
+      '174',
+      '180',
+      '186',
+      '192',
+      '198',
+      '204',
+      '210',
+      '216',
+      '222',
+      '228',
+      '234',
+      '240',
+      '264'
+    ];
+
+    const SuWAT_STEPS = ['000', '003', '006', '009', '012', '015', '018', '021', '024', '027', '030',
+      '033', '036', '039', '042', '045', '048', '051', '054', '057', '060',
+      '063', '066', '069', '072', '075', '078', '081', '084', '087', '090'];
+
+    const SwanGSM_STEPS = ['000', '003', '006', '009', '012', '015', '018', '021', '024', '027', '030',
+      '033', '036', '039', '042', '045', '048', '051', '054', '057', '060',
+      '063', '066', '069', '072', '075', '078', '081', '084', '087', '090',
+      '093', '096', '099', '102', '105', '108', '111', '114', '117', '120',
+      '123', '126', '129', '132', '135', '138', '141', '144', '147', '150',
+      '153', '156', '159', '162', '165', '168', '171', '174', '177', '180',
+      '183', '186', '189', '192', '195', '198', '201', '204', '207', '210',
+      '213', '216', '219', '222', '225', '228', '231', '234', '237', '240',
+      '243', '246'];
+
     this.analysisData = [
       {
         code: 'mhtd_w',
         name: 'Gió',
         startTime: '2024-07-21T12:00:00Z',
         pressureLevels: ['Bề mặt', '200', '300', '500', '700'],
-        steps: [
-          '000',
-          '006',
-          '012',
-          '018',
-          '024',
-          '030',
-          '036',
-          '042',
-          '048',
-          '072',
-        ],
+        steps: GSM_STEPS,
       },
       {
         code: 'mhtd_w10m',
         name: 'Gió bề mặt',
         startTime: '2024-07-21T12:00:00Z',
         pressureLevels: ['Bề mặt'],
-        steps: [
-          '000',
-          '006',
-          '012',
-          '018',
-          '024',
-          '030',
-          '036',
-          '042',
-          '048',
-          '072',
-        ],
+        steps: GSM_STEPS,
       },
       {
         code: 'mhtd_rain',
         name: 'Mưa',
         startTime: '2024-07-21T12:00:00Z',
         pressureLevels: ['Bề mặt'],
-        steps: [
-          '000',
-          '006',
-          '012',
-          '018',
-          '024',
-          '030',
-          '036',
-          '042',
-          '048',
-          '072',
-        ],
+        steps: GSM_STEPS,
       },
       {
         code: 'mhtd_pmsl',
         name: 'Khí áp',
         startTime: '2024-07-21T12:00:00Z',
         pressureLevels: ['Bề mặt'],
-        steps: [
-          '000',
-          '006',
-          '012',
-          '018',
-          '024',
-          '030',
-          '036',
-          '042',
-          '048',
-          '072',
-        ],
+        steps: GSM_STEPS,
       },
     ];
     this.analysisField = this.analysisData[0];
+
+    /** SuWAT */
+    this.SuWatAnalysisData = [
+      {
+        code: 'zeta',
+        name: 'Nước dâng',
+        startTime: '2017-09-12T12:00:00Z',
+        pressureLevels: ['Bề mặt'],
+        steps: SuWAT_STEPS,
+      },
+    ];
+    this.SuWatAnalysisField = this.SuWatAnalysisData[0];
+
+    /** SwanGSM */
+    this.SwanGSM_AnalysisData = [
+      {
+        code: 'hs',
+        name: 'Độ cao sóng có nghĩa',
+        startTime: '2024-06-26T12:00:00Z',
+        pressureLevels: ['Bề mặt'],
+        steps: SwanGSM_STEPS
+      },
+      {
+        code: 'theta0',
+        name: 'Hướng sóng có nghĩa',
+        startTime: '2024-06-26T12:00:00Z',
+        pressureLevels: ['Bề mặt'],
+        steps: SwanGSM_STEPS
+      },
+      {
+        code: 'hswe',
+        name: 'Độ cao sóng lửng',
+        startTime: '2024-06-26T12:00:00Z',
+        pressureLevels: ['Bề mặt'],
+        steps: SwanGSM_STEPS
+      },
+    ];
+    this.SwanGSM_AnalysisField = this.SwanGSM_AnalysisData[0];
+
     this.initForm();
   }
 
@@ -172,6 +248,7 @@ export class MapDemoComponent implements OnInit {
         [Validators.required],
       ],
       step: [this.analysisField?.steps[0], [Validators.required]],
+      isFill: [true],
       // isWindContour: [false],
       isWind10mContour: [false],
       // isRainContour: [false],
@@ -180,14 +257,53 @@ export class MapDemoComponent implements OnInit {
     this.formGroup.controls['code'].valueChanges.subscribe((code) => {
       this.analysisField = this.analysisData.find((a) => a.code === code);
     });
+
+    /** SuWAT */
+    this.SuWatFormGroup = this.fb.group({
+      code: [this.SuWatAnalysisField?.code, [Validators.required]],
+      startTime: [this.SuWatAnalysisField?.startTime, [Validators.required]],
+      pressureLevel: [
+        this.SuWatAnalysisField?.pressureLevels[0],
+        [Validators.required],
+      ],
+      step: [this.SuWatAnalysisField?.steps[0], [Validators.required]],
+      isFill: [false],
+    });
+    this.SuWatFormGroup.controls['code'].valueChanges.subscribe((code) => {
+      this.SuWatAnalysisField = this.SuWatAnalysisData.find(
+        (a) => a.code === code
+      );
+    });
+
+    /** SwanGSM */
+    this.SwanGSM_FormGroup = this.fb.group({
+      code: [this.SwanGSM_AnalysisField?.code, [Validators.required]],
+      startTime: [this.SwanGSM_AnalysisField?.startTime, [Validators.required]],
+      pressureLevel: [
+        this.SwanGSM_AnalysisField?.pressureLevels[0],
+        [Validators.required],
+      ],
+      step: [this.SwanGSM_AnalysisField?.steps[0], [Validators.required]],
+      isFill: [false],
+    });
+    this.SwanGSM_FormGroup.controls['code'].valueChanges.subscribe((code) => {
+      this.SwanGSM_AnalysisField = this.SwanGSM_AnalysisData.find(
+        (a) => a.code === code
+      );
+    });
   }
 
   loadData() {
-    this.updateLayers();
+    // 21/7 12h - 1/8 12h
+    // swan-gsm : 26062024 12h 06072024 21h
+    // suwat 12092017 12h 16092017 6h
+    this.updateGSMLayers();
+    this.updateSuWatLayers();
+    this.updateSwanGSMLayers();
   }
 
-  updateLayers() {
-    if (!this.map || !this.analysisField) return;
+  updateGSMLayers() {
+    // if (!this.map || !this.analysisField) return;
     let formValue = this.formGroup.value;
     let layerOptions: any = {
       layers: `VTMAP:${formValue.code}`,
@@ -196,6 +312,7 @@ export class MapDemoComponent implements OnInit {
       transparent: true,
       opacity: 0.8,
       version: '1.1.1',
+      interpolations: 'bicubic',
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -207,25 +324,90 @@ export class MapDemoComponent implements OnInit {
         .toISOString();
       layerOptions.time = formValue.time;
     }
-    if (this.tileLayer) {
-      this.map.removeLayer(this.tileLayer);
-    }
-    this.tileLayer = L.nonTiledLayer
-      .wms(GEOSERVER_WMS, layerOptions)
-      .addTo(this.map);
 
-    if (formValue.isWind10mContour) {
-      layerOptions.layers = `VTMAP:mhtd_w10m`;
-      layerOptions.styles = 'wind_10m_1';
-      this.clearLayerCache('mhtd_w10m');
+    /** Hiện mảng màu */
+    this.loadLayer(formValue.isFill, layerOptions);
 
-      let contour = L.nonTiledLayer
-        .wms(GEOSERVER_WMS, layerOptions)
-        .addTo(this.map);
-      this.layerCache.set('mhtd_w10m', contour);
-    } else {
-      this.clearLayerCache('mhtd_w10m');
+    /** Hiện mảng contour */
+    this.loadLayer(formValue.isWind10mContour, layerOptions, {
+      layers: `VTMAP:mhtd_w10m`,
+      styles: 'wind_10m_1',
+    });
+  }
+
+  updateSuWatLayers() {
+    // if (!this.map || !this.SuWatAnalysisField) return;
+    let formValue = this.SuWatFormGroup.value;
+    console.log('updateSuWatLayers');
+    let layerOptions: any = {
+      layers: `VTMAP:${formValue.code}`,
+      time: formValue.startTime,
+      format: 'image/png',
+      transparent: true,
+      opacity: 0.8,
+      version: '1.1.1',
+      interpolations: 'bilinear',
+      // DIM_LEV: +formValue.pressureLevel,
+    };
+    if (!Number.isNaN(+formValue.pressureLevel)) {
+      layerOptions.DIM_LEV = +formValue.pressureLevel;
     }
+    if (!Number.isNaN(+formValue.step)) {
+      formValue.time = moment(formValue.startTime)
+        .add(+formValue.step, 'hours')
+        .toISOString();
+      layerOptions.time = formValue.time;
+    }
+
+    /** Hiện mảng màu */
+    this.loadLayer(formValue.isFill, layerOptions);
+  }
+
+  updateSwanGSMLayers() {
+    // if (!this.map || !this.SwanGSM_AnalysisField) return;
+    let formValue = this.SwanGSM_FormGroup.value;
+    console.log('SwanGSM_FormGroup');
+
+    let layerOptions: any = {
+      layers: `VTMAP:${formValue.code}`,
+      time: formValue.startTime,
+      format: 'image/png',
+      transparent: true,
+      opacity: 0.8,
+      version: '1.1.1',
+      interpolations: 'bilinear',
+      // DIM_LEV: +formValue.pressureLevel,
+    };
+    if (!Number.isNaN(+formValue.pressureLevel)) {
+      layerOptions.DIM_LEV = +formValue.pressureLevel;
+    }
+    if (!Number.isNaN(+formValue.step)) {
+      formValue.time = moment(formValue.startTime)
+        .add(+formValue.step, 'hours')
+        .toISOString();
+      layerOptions.time = formValue.time;
+    }
+
+    /** Hiện mảng màu */
+    this.loadLayer(formValue.isFill, layerOptions);
+  }
+
+  loadLayer(isShow: boolean, layerOptions: any, customOptions?: any) {
+    layerOptions = {
+      ...layerOptions,
+      ...customOptions,
+    };
+    console.log(layerOptions);
+
+    // if (isShow) {
+    //   this.clearLayerCache(layerOptions.layers);
+    //   let contour = L.nonTiledLayer
+    //     .wms(GEOSERVER_WMS, layerOptions)
+    //     .addTo(this.map);
+    //   this.layerCache.set(layerOptions.layers, contour);
+    // } else {
+    //   this.clearLayerCache(layerOptions.layers);
+    // }
   }
 
   clearLayerCache(layerCode: string) {
