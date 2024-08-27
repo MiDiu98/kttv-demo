@@ -425,9 +425,14 @@ export class MapDemoComponent implements OnInit {
     this.updateSwanGSMLayers();
   }
 
+  getStyle(code: string) {
+    return code.split('ne:')[1];
+  }
+
   updateGSMLayers() {
     // if (!this.map || !this.analysisField) return;
     let formValue = this.formGroup.value;
+    let styleCode = this.getStyle(formValue.code);
     let layerOptions: any = {
       layers: `${formValue.code}`,
       time: formValue.startTime,
@@ -436,7 +441,8 @@ export class MapDemoComponent implements OnInit {
       opacity: 0.8,
       version: '1.1.1',
       interpolations: 'bicubic',
-      styles: `${formValue.code}`,
+      // styles: `${formValue.code}`,
+      styles: styleCode
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -456,7 +462,7 @@ export class MapDemoComponent implements OnInit {
     /** Hiện mảng contour */
     this.loadLayer(formValue.isWind10mContour, layerOptions, {
       layers: `${MODEL.GSM.w10}`,
-      styles: `${formValue.code}_direction`,
+      styles: `${styleCode}_direction`,
     });
     // this.loadLayer(formValue.isWind10mContour, layerOptions, {
     //   layers: `${MODEL.GSM.w10}`,
@@ -467,6 +473,8 @@ export class MapDemoComponent implements OnInit {
   updateSuWatLayers() {
     // if (!this.map || !this.SuWatAnalysisField) return;
     let formValue = this.SuWatFormGroup.value;
+    let styleCode = this.getStyle(formValue.code);
+
     let layerOptions: any = {
       layers: `${formValue.code}`,
       time: formValue.startTime,
@@ -475,7 +483,8 @@ export class MapDemoComponent implements OnInit {
       opacity: 0.8,
       version: '1.1.1',
       interpolations: 'bilinear',
-      styles: `${formValue.code}`,
+      // styles: `${formValue.code}`,
+      styles: styleCode
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -495,6 +504,7 @@ export class MapDemoComponent implements OnInit {
   updateSwanGSMLayers() {
     // if (!this.map || !this.SwanGSM_AnalysisField) return;
     let formValue = this.SwanGSM_FormGroup.value;
+    let styleCode = this.getStyle(formValue.code);
     let layerOptions: any = {
       layers: `${formValue.code}`,
       time: formValue.startTime,
@@ -503,7 +513,8 @@ export class MapDemoComponent implements OnInit {
       opacity: 0.8,
       version: '1.1.1',
       interpolations: 'bilinear',
-      styles: `${formValue.code}`,
+      // styles: `${formValue.code}`,
+      styles: styleCode
       // DIM_LEV: +formValue.pressureLevel,
     };
     if (!Number.isNaN(+formValue.pressureLevel)) {
@@ -527,15 +538,15 @@ export class MapDemoComponent implements OnInit {
     };
     // console.log(layerOptions);
 
-    // if (isShow) {
-    //   this.clearLayerCache(layerOptions.layers);
-    //   let contour = L.nonTiledLayer
-    //     .wms(GEOSERVER_WMS, layerOptions)
-    //     .addTo(this.map);
-    //   this.layerCache.set(layerOptions.layers, contour);
-    // } else {
-    //   this.clearLayerCache(layerOptions.layers);
-    // }
+    if (isShow) {
+      this.clearLayerCache(layerOptions.layers);
+      let contour = L.nonTiledLayer
+        .wms(GEOSERVER_WMS, layerOptions)
+        .addTo(this.map);
+      this.layerCache.set(layerOptions.layers, contour);
+    } else {
+      this.clearLayerCache(layerOptions.layers);
+    }
   }
 
   clearLayerCache(layerCode: string) {
@@ -592,15 +603,12 @@ export class MapDemoComponent implements OnInit {
   }
 
   getCurrentLegend(isShow: boolean, layerOptions: any) {
-    console.log('getCurrentLegend', layerOptions);
-
     if (isShow) {
       let legend = undefined;
       this.currentLegend = undefined;
 
       for (let i = 0; i < this.legendList.length; i++) {
         let item = this.legendList[i];
-        console.log(+item.lev === +layerOptions.DIM_LEV);
         if (
           item.code === layerOptions.layers &&
           layerOptions.layers === MODEL.GSM.w &&
@@ -612,14 +620,9 @@ export class MapDemoComponent implements OnInit {
           legend = item;
         }
       };
-      console.log(legend);
-
       this.currentLegend = legend;
     } else {
       this.currentLegend = undefined;
     }
-
-    console.log(this.legendList);
-    console.log(this.currentLegend);
   }
 }
