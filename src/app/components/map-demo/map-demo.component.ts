@@ -66,7 +66,7 @@ export class MapDemoComponent implements OnInit {
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    // this.initMap();
+    this.initMap();
   }
 
   initMap() {
@@ -527,15 +527,15 @@ export class MapDemoComponent implements OnInit {
     };
     // console.log(layerOptions);
 
-    // if (isShow) {
-    //   this.clearLayerCache(layerOptions.layers);
-    //   let contour = L.nonTiledLayer
-    //     .wms(GEOSERVER_WMS, layerOptions)
-    //     .addTo(this.map);
-    //   this.layerCache.set(layerOptions.layers, contour);
-    // } else {
-    //   this.clearLayerCache(layerOptions.layers);
-    // }
+    if (isShow) {
+      this.clearLayerCache(layerOptions.layers);
+      let contour = L.nonTiledLayer
+        .wms(GEOSERVER_WMS, layerOptions)
+        .addTo(this.map);
+      this.layerCache.set(layerOptions.layers, contour);
+    } else {
+      this.clearLayerCache(layerOptions.layers);
+    }
   }
 
   clearLayerCache(layerCode: string) {
