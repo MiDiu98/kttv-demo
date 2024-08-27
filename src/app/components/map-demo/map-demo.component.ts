@@ -465,11 +465,11 @@ export class MapDemoComponent implements OnInit {
     /** Hiện mảng contour */
     this.loadLayer(formValue.isWind10mContour, layerOptions, {
       layers: `${MODEL.GSM.w10}`,
-      styles: `${styleCode}_direction`,
+      styles: `${this.getStyle(MODEL.GSM.w10)}_direction`,
     });
     this.loadLayer(formValue.isPressureContour, layerOptions, {
       layers: `${MODEL.GSM.pmsl}`,
-      styles: `${styleCode}_contour`,
+      styles: `${this.getStyle(MODEL.GSM.pmsl)}_contour`,
     });
     // this.loadLayer(formValue.isWind10mContour, layerOptions, {
     //   layers: `${MODEL.GSM.w10}`,
@@ -510,7 +510,7 @@ export class MapDemoComponent implements OnInit {
     /** Hiện mảng contour */
     this.loadLayer(formValue.isZetaContour, layerOptions, {
       layers: `${MODEL.SUWAT.zeta}`,
-      styles: `${styleCode}_contour`,
+      styles: `${this.getStyle(MODEL.SUWAT.zeta)}_contour`,
     });
   }
 
@@ -545,11 +545,11 @@ export class MapDemoComponent implements OnInit {
     /** Hiện mảng contour */
     this.loadLayer(formValue.isHsContour, layerOptions, {
       layers: `${MODEL.SWAN_GSM.hs}`,
-      styles: `${styleCode}_contour`,
+      styles: `${this.getStyle(MODEL.SWAN_GSM.hs)}_contour`,
     });
     this.loadLayer(formValue.isHsweContour, layerOptions, {
       layers: `${MODEL.SWAN_GSM.hswe}`,
-      styles: `${styleCode}_contour`,
+      styles: `${this.getStyle(MODEL.SWAN_GSM.hswe)}_contour`,
     });
   }
 
@@ -558,7 +558,7 @@ export class MapDemoComponent implements OnInit {
       ...layerOptions,
       ...customOptions,
     };
-    // console.log(layerOptions);
+    console.log(layerOptions);
 
     if (isShow) {
       this.clearLayerCache(layerOptions.layers);
